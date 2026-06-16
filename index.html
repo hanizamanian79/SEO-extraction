@@ -374,24 +374,15 @@ function extractHtmlMetrics(label, htmlContent, allExtractedTexts, perSourcePhra
     const altTexts = Array.from(doc.querySelectorAll('img')).map(img => img.getAttribute('alt')).filter(alt => alt && alt.trim() !== "");
     const anchorTexts = Array.from(doc.querySelectorAll('a')).map(el => el.innerText.trim()).filter(t => t !== "");
 
-    // Clean Document Structure for counting to prevent overlapping sentences
     const cleanDoc = doc.cloneNode(true);
-    
-    // Completely remove non-contextual blocks to prevent side-bar and menu pollution
-    const block elements = cleanDoc.querySelectorAll('script, style, svg, iframe, nav, header, footer, noscript, head, dialog, sidebar, .menu, .sidebar, #footer, #header');
-    block elements.forEach(el => el.remove());
+    const blockElements = cleanDoc.querySelectorAll('script, style, svg, iframe, nav, header, footer, noscript, head, dialog, sidebar, .menu, .sidebar, #footer, #header');
+    blockElements.forEach(el => el.remove());
 
-    // Inject a special separator placeholder before paragraph breaks, list elements, or headers 
-    // to preserve visual text isolation and stop phrases from cross-merging
     cleanDoc.querySelectorAll('p, div, li, h1, h2, h3, tr, section, article').forEach(el => {
         el.insertAdjacentText('beforeend', ' [BREAK] ');
     });
 
     const pureBodyText = cleanDoc.body ? cleanDoc.body.innerText : "";
-
-    // K-GRAM BALANCER ENGINE:
-    // We strictly use ONLY the structured title/headings and the body string. 
-    // Anchor elements are already nested in the body innerText naturally, so we NO LONGER append arrays.
     const textSnapshotForCounting = `${title} [BREAK] ${metaDesc} [BREAK] ${h1s.join(" ")} [BREAK] ${pureBodyText}`;
     
     allExtractedTexts.push(textSnapshotForCounting);
@@ -453,7 +444,6 @@ function renderUnifiedComparisonMatrix(sources, container) {
 }
 
 function getTopPhrases(text, phraseLength, topCount = 10) {
-    // Split structural groups first using our custom block-breaks
     const paragraphs = text.split('[BREAK]');
     const phraseCounts = {};
     const stopWords = ['از', 'به', 'که', 'در', 'با', 'تا', 'را', 'این', 'آن', 'است', 'برای', 'می', 'شور', 'شد', 'شود', 'هم', 'یک', 'یا', 'ها', 'دارد', 'دهند', 'کنند', 'ال', 'های', 'بود', 'دارند', 'نیز', 'وی', 'شدند', 'دارید', 'کنند'];
@@ -463,11 +453,9 @@ function getTopPhrases(text, phraseLength, topCount = 10) {
         const foundWords = p.match(persianRegex);
         if (!foundWords) return;
 
-        // Strip localized stop-words safely per textual element segment
         const words = foundWords.filter(word => !stopWords.includes(word) && word.length > 1);
         if (words.length < phraseLength) return;
 
-        // Slide window ONLY within the limits of this single structural element block
         for (let i = 0; i <= words.length - phraseLength; i++) {
             const phrase = words.slice(i, i + phraseLength).join(" ");
             phraseCounts[phrase] = (phraseCounts[phrase] || 0) + 1;
