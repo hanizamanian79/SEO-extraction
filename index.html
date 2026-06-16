@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>استخراج‌گر جامع سئو (نسخه ماتریس اختصاصی - اصلاح استخراج انکرتکست)</title>
+    <title>استخراج‌گر جامع سئو (نمایش خط به خط انکرتکست‌ها)</title>
     <style>
         :root {
             --bg-main: #fcfbf9;
@@ -191,6 +191,20 @@
         .phrase-wrapper { display: flex; align-items: center; flex-wrap: wrap; gap: 0.2rem; }
         .phrase-text { color: var(--text-heading); font-weight: 500; }
         .count-badge { font-size: 0.7rem; font-weight: 700; color: var(--accent); background-color: var(--accent-bg); padding: 0.05rem 0.3rem; border-radius: var(--radius-sm); white-space: nowrap; }
+        
+        /* Box optimized for displaying anchor texts row by row cleanly */
+        .anchor-preview-box { 
+            background-color: var(--bg-main); 
+            border: 1px solid var(--border-subtle); 
+            padding: 0.75rem; 
+            border-radius: var(--radius-md); 
+            max-height: 180px; 
+            overflow-y: auto; 
+            font-size: 0.85rem; 
+            color: var(--accent);
+            line-height: 1.8;
+        }
+        
         .body-preview-box { background-color: var(--bg-main); border: 1px dashed var(--border-subtle); padding: 0.75rem; border-radius: var(--radius-md); max-height: 120px; overflow-y: auto; white-space: pre-line; font-size: 0.85rem; }
         
         .filter-notice {
@@ -219,7 +233,7 @@
         <div class="dashboard-grid">
             <div class="control-group">
                 <label>بخش اول: استخراج خودکار آدرس‌ها (تا ۵ آدرس همزمان)</label>
-                <input type="url" class="url-input" placeholder="https://example1.com">
+                <input type="url" class="url-input" placeholder="https://example1.com" value="https://kayhanravan.ir/arshad/clinical-general-psychology/">
                 <input type="url" class="url-input" placeholder="https://example2.com">
                 <input type="url" class="url-input" placeholder="https://example3.com">
                 <input type="url" class="url-input" placeholder="https://example4.com">
@@ -338,7 +352,7 @@ function processHtmlDocument(label, htmlContent, perSourcePhrases, container) {
     const h3s = Array.from(doc.querySelectorAll('h3')).map(el => el.innerText.trim());
     const altTexts = Array.from(doc.querySelectorAll('img')).map(img => img.getAttribute('alt')).filter(alt => alt && alt.trim() !== "").map(alt => alt.trim());
     
-    // Core Correction: Explicitly targeting all links (Anchor texts)
+    // Extracts anchor texts cleanly
     const anchorTexts = Array.from(doc.querySelectorAll('a')).map(el => el.innerText.trim()).filter(text => text !== "");
 
     const cleanDoc = doc.cloneNode(true);
@@ -350,10 +364,10 @@ function processHtmlDocument(label, htmlContent, perSourcePhrases, container) {
     if (metaDesc) seoContextData.descriptions.push(metaDesc.toLowerCase());
     h1s.forEach(h1 => seoContextData.h1s.push(h1.toLowerCase()));
 
-    // Optimization: Injecting anchorTexts directly into the analyzer string with hard boundaries to maximize extraction priority
+    // Added a newline boundary (\n) between items so phrase analysis respects exact string borders
     const combinedLinkElementsText = `
-        ${title} ${metaDesc} ${h1s.join(" ")} ${h2s.join(" ")} ${h3s.join(" ")} 
-        ${anchorTexts.join(" ")} ${altTexts.join(" ")} ${pureBodyText}
+        ${title} \n ${metaDesc} \n ${h1s.join(" \n ")} \n ${h2s.join(" \n ")} \n ${h3s.join(" \n ")} \n 
+        ${anchorTexts.join(" \n ")} \n ${altTexts.join(" \n ")} \n ${pureBodyText}
     `;
     
     perSourcePhrases[label] = combinedLinkElementsText; 
@@ -370,6 +384,11 @@ function renderUrlTable(url, title, desc, h1s, h2s, h3s, altTexts, anchorTexts, 
     const wordCount = wordsArray.length;
     const previewText = wordsArray.slice(0, 150).join(' ') + (wordCount > 150 ? ' ...' : '');
 
+    // Generates the anchor texts per line inside a dedicated container element
+    const anchorsPerLineHtml = anchorTexts.length 
+        ? `<div class="anchor-preview-box">${anchorTexts.map(text => `<div>🔗 ${text}</div>`).join('')}</div>`
+        : 'یافت نشد';
+
     card.innerHTML = `
         <h3 style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem; font-size:1rem; word-break: break-all;">منبع ورودی: ${dynamicLink}</h3>
         <div class="table-responsive">
@@ -380,7 +399,7 @@ function renderUrlTable(url, title, desc, h1s, h2s, h3s, altTexts, anchorTexts, 
                     <tr><td><strong>عناوین H1</strong></td><td>${h1s.length ? `<ul>${h1s.map(h => `<li>${h}</li>`).join('')}</ul>` : 'یافت نشد'}</td></tr>
                     <tr><td><strong>عناوین H2</strong></td><td>${h2s.length ? `<ul>${h2s.map(h => `<li>${h}</li>`).join('')}</ul>` : 'یافت نشد'}</td></tr>
                     <tr><td><strong>عناوین H3</strong></td><td>${h3s.length ? `<ul>${h3s.map(h => `<li>${h}</li>`).join('')}</ul>` : 'یافت نشد'}</td></tr>
-                    <tr><td><strong>متن انکرتکست‌ها (لینک‌ها)</strong></td><td>${anchorTexts.length ? `<div style="max-height:80px; overflow-y:auto; font-size:0.8rem; color:var(--accent);">${anchorTexts.slice(0, 30).join(' | ')} ...</div>` : 'یافت نشد'}</td></tr>
+                    <tr><td><strong>متن انکرتکست‌ها (لینک‌ها - خط به خط)</strong></td><td>${anchorsPerLineHtml}</td></tr>
                     <tr><td><strong>متن تصاویر (Alt)</strong></td><td>${altTexts.length ? `<ul>${altTexts.map(a => `<li>${a}</li>`).join('')}</ul>` : 'یافت نشد'}</td></tr>
                     <tr><td><strong>متن استخراج‌شده از بدنه</strong></td><td><div class="body-preview-box">${previewText || 'هیچ متنی یافت نشد'}</div></td></tr>
                 </tbody>
