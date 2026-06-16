@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>استخراج‌گر جامع سئو و تحلیل‌گر عبارات فارسی (نسخه تگ‌های ساختاری)</title>
+    <title>استخراج‌گر جامع سئو با فیلتر عبارات عمومی فروشگاهی</title>
     <style>
         :root {
             --bg-main: #fcfbf9;
@@ -83,13 +83,6 @@
             border-radius: var(--radius-sm);
         }
 
-        h3 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-heading);
-            margin: 0 0 1rem 0;
-        }
-
         .card {
             background-color: var(--bg-surface);
             border: 1px solid var(--border-subtle);
@@ -99,7 +92,6 @@
             box-shadow: 0 4px 20px -2px rgba(28, 25, 23, 0.03);
         }
 
-        /* Modern Badges for SEO Positions */
         .seo-tag {
             display: inline-block;
             font-size: 0.7rem;
@@ -202,6 +194,16 @@
         .phrase-text { color: var(--text-heading); font-weight: 500; }
         .count-badge { font-size: 0.75rem; font-weight: 700; color: var(--accent); background-color: var(--accent-bg); padding: 0.1rem 0.4rem; border-radius: var(--radius-sm); }
         .body-preview-box { background-color: var(--bg-main); border: 1px dashed var(--border-subtle); padding: 0.75rem; border-radius: var(--radius-md); max-height: 120px; overflow-y: auto; white-space: pre-line; font-size: 0.85rem; }
+        
+        /* Notice block for active filters */
+        .filter-notice {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            background-color: var(--bg-neutral-light);
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-sm);
+            margin-bottom: 1rem;
+        }
     </style>
 </head>
 <body>
@@ -209,10 +211,14 @@
 <div class="container">
     <header>
         <h1>استخراج‌گر سئو و تحلیل‌گر عبارات فارسی</h1>
-        <p class="subtitle">سیستم پایش فرکانس کل اجزای متنی همراه با آشکارسازی هوشمند موقعیت‌های استراتژیک سئو</p>
+        <p class="subtitle">سیستم پایش فرکانس سئو همراه با تگ‌های موقعیت هوشمند و فیلتر خودکار عبارات تکراری پیش‌فرض فروشگاهی</p>
     </header>
     
     <div class="card">
+        <div class="filter-notice">
+            <strong>صافی هوشمند فعال است:</strong> کلمات عمومی فروشگاهی مانند «هزار، تومان، محصول، سبد خرید، افزودن به سبد خرید» به طور خودکار از محاسبات چگالی حذف خواهند شد تا ارزش عبارات تخصصی مشخص شود.
+        </div>
+
         <div class="dashboard-grid">
             <div class="control-group">
                 <label>بخش اول: استخراج خودکار آدرس‌ها (تا ۵ آدرس همزمان)</label>
@@ -242,7 +248,9 @@
 </div>
 
 <script>
-// Global object to collect diagnostic contexts across all scraped assets
+// Define e-commerce global stop words to eliminate clutter from analytics
+const STOP_WORDS = ["هزار", "تومان", "محصول", "سبد", "خرید", "افزودن"];
+
 let seoContextData = { titles: [], h1s: [], descriptions: [] };
 
 async function fetchWithProxyFallback(targetUrl, statusDiv) {
@@ -280,7 +288,6 @@ async function triggerUnifiedExtractionWorkflow() {
     urlResultsSection.innerHTML = "<h2>جزئیات تشخیصی ساختار تفکیکی هر ورودی</h2>";
     phraseResultsSection.innerHTML = "<h2>جداول تحلیل عبارات کلیدی تکرار شونده فارسی (مجموع کل ورودی‌ها)</h2>";
     
-    // Reset analytical data buckets
     seoContextData = { titles: [], h1s: [], descriptions: [] };
     let allExtractedTexts = [];
     let perSourcePhrases = {}; 
@@ -346,12 +353,10 @@ function processHtmlDocument(label, htmlContent, allExtractedTexts, perSourcePhr
     elementsToRemove.forEach(el => el.remove());
     const pureBodyText = cleanDoc.body ? cleanDoc.body.innerText.replace(/\s+/g, ' ').trim() : "";
 
-    // Save strings into global reference array for matching later
     if (title) seoContextData.titles.push(title.toLowerCase());
     if (metaDesc) seoContextData.descriptions.push(metaDesc.toLowerCase());
     h1s.forEach(h1 => seoContextData.h1s.push(h1.toLowerCase()));
 
-    // Keep extraction data pure and unfiltered to count phrases accurately
     const combinedLinkElementsText = `
         ${title} ${metaDesc} ${h1s.join(" ")} ${h2s.join(" ")} ${h3s.join(" ")} 
         ${anchorTexts.join(" ")} ${altTexts.join(" ")} ${pureBodyText}
@@ -403,7 +408,12 @@ function getTopPhrases(text, phraseLength, topCount = 10) {
     const foundWords = text.match(persianRegex);
     if (!foundWords) return [];
 
-    const words = foundWords.filter(word => word.length > 1);
+    // Filter step: Remove short single characters AND check against our e-commerce filter list
+    const words = foundWords.filter(word => {
+        const cleanWord = word.trim();
+        return cleanWord.length > 1 && !STOP_WORDS.includes(cleanWord);
+    });
+
     const phraseCounts = {};
     for (let i = 0; i <= words.length - phraseLength; i++) {
         const phrase = words.slice(i, i + phraseLength).join(" ");
@@ -412,7 +422,6 @@ function getTopPhrases(text, phraseLength, topCount = 10) {
     return Object.entries(phraseCounts).sort((a, b) => b[1] - a[1]).slice(0, topCount);
 }
 
-// Scans global layout contexts to generate matching uppercase structural labels
 function generateSeoBadges(phrase) {
     let badgesHtml = "";
     const lowerPhrase = phrase.toLowerCase();
