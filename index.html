@@ -114,7 +114,7 @@
 
         @media (min-width: 768px) {
             .dashboard-grid {
-                grid-template-columns: 1.1fr 1fr;
+                grid-template-columns: 1fr 1fr;
             }
         }
 
@@ -128,6 +128,7 @@
             font-size: 0.85rem;
             font-weight: 700;
             color: var(--text-heading);
+            margin-bottom: 0.25rem;
         }
 
         input[type="url"], textarea {
@@ -143,7 +144,7 @@
         }
 
         input[type="url"] { direction: ltr; font-family: monospace; }
-        textarea { direction: ltr; font-family: monospace; height: 140px; resize: none; }
+        textarea { direction: ltr; font-family: monospace; height: 110px; resize: none; }
 
         input[type="url"]:focus, textarea:focus {
             outline: none;
@@ -152,7 +153,7 @@
             box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
         }
 
-        /* Action Buttons Buttons Split */
+        /* Action Buttons */
         .btn-stack {
             display: flex;
             gap: 1rem;
@@ -178,16 +179,6 @@
 
         button:hover {
             background-color: var(--primary-hover);
-        }
-
-        button.secondary {
-            background-color: var(--bg-neutral-light);
-            color: var(--text-heading);
-            border: 1px solid var(--border-subtle);
-        }
-
-        button.secondary:hover {
-            background-color: #e5e3dd;
         }
 
         button:disabled {
@@ -290,11 +281,8 @@
             font-weight: 500;
         }
 
-        /* -------------------------------------------------------------
-           CRITICAL MOBILE OVERHAUL SOLUTION (TABLES TO FEED CARDS)
-           ------------------------------------------------------------- */
+        /* Responsive Mobile Layout Layer */
         @media screen and (max-width: 768px) {
-            /* Transform standard diagnostic profile view tables */
             .table-responsive table, 
             .table-responsive tbody, 
             .table-responsive tr, 
@@ -304,7 +292,7 @@
             }
             
             .table-responsive thead { 
-                display: none; /* Hide header columns on micro viewport widths */
+                display: none; 
             }
 
             .table-responsive tr {
@@ -325,7 +313,6 @@
                 border-bottom: none;
             }
 
-            /* Prepend analytical identity tag attributes explicitly */
             .table-responsive td::before {
                 content: attr(data-label);
                 display: block;
@@ -336,7 +323,6 @@
                 text-transform: uppercase;
             }
 
-            /* Specific transformation setup variant for Table 4.5 grid elements */
             #per-url-table-dom tbody tr {
                 display: flex;
                 flex-direction: column;
@@ -360,34 +346,36 @@
 <div class="container">
     <header>
         <h1>استخراج‌گر سئو و تحلیل‌گر عبارات فارسی</h1>
-        <p class="subtitle">سیستم پایش و متراژ کلمات کلیدی، برچسب‌های هیدینگ و تصاویر به تفکیک دامنه</p>
+        <p class="subtitle">سیستم پایش و متراژ کلمات کلیدی، برچسب‌های هیدینگ و تصاویر به تفکیک دامنه و سورس متنی</p>
     </header>
     
-    <!-- App Control Panel -->
+    <!-- Unified App Control Panel -->
     <div class="card">
         <div class="dashboard-grid">
             <div class="control-group">
-                <label>روش اول: استخراج خودکار چند آدرس همزمان</label>
+                <label>بخش اول: استخراج خودکار آدرس‌ها (تا ۵ آدرس همزمان)</label>
                 <input type="url" class="url-input" placeholder="https://example1.com" value="https://kayhanravan.ir/arshad/clinical-general-psychology/">
                 <input type="url" class="url-input" placeholder="https://example2.com">
                 <input type="url" class="url-input" placeholder="https://example3.com">
+                <input type="url" class="url-input" placeholder="https://example4.com">
+                <input type="url" class="url-input" placeholder="https://example5.com">
             </div>
 
             <div class="control-group">
-                <label>روش دوم: میانبر فایروال (پیست کردن مستقیم کدهای سورس HTML وب‌سایت)</label>
-                <textarea id="raw-html-input" placeholder="کدهای View Page Source (Ctrl+U) را اینجا رها کنید..."></textarea>
+                <label>بخش دوم: کدهای سورس دستی HTML (تا ۲ سورس همزمان)</label>
+                <textarea class="html-input" placeholder="سورس کد اول (View Page Source) را اینجا پیست کنید..."></textarea>
+                <textarea class="html-input" style="margin-top: 0.5rem;" placeholder="سورس کد دوم (View Page Source) را اینجا پیست کنید..."></textarea>
             </div>
         </div>
 
         <div class="btn-stack">
-            <button id="start-btn" onclick="triggerExtractionWorkflow(false)">شروع خزش خودکار لینک‌ها</button>
-            <button id="bypass-btn" class="secondary" onclick="triggerExtractionWorkflow(true)">پردازش سورس متنی دستی</button>
+            <button id="start-btn" onclick="triggerUnifiedExtractionWorkflow()">شروع پردازش و تحلیل همزمان کل داده‌ها</button>
         </div>
         
         <div id="status-output" class="status-bar"></div>
     </div>
 
-    <!-- Target Output Hooks -->
+    <!-- Output Sections -->
     <div id="url-results-section"></div>
     <div id="phrase-results-section"></div>
 </div>
@@ -405,7 +393,7 @@ async function fetchWithProxyFallback(targetUrl, statusDiv) {
     for (let i = 0; i < proxies.length; i++) {
         const proxy = proxies[i];
         statusDiv.style.display = "block";
-        statusDiv.innerText = `در حال ارتباط با سرور کمکی شبکه ${i + 1} (${proxy.name})...`;
+        statusDiv.innerText = `در حال خزش آدرس از طریق سرور شبکه ${i + 1} (${proxy.name})...`;
         
         try {
             const response = await fetch(proxy.url);
@@ -418,78 +406,75 @@ async function fetchWithProxyFallback(targetUrl, statusDiv) {
                 if (text && text.trim().length > 200) return text;
             }
         } catch (e) {
-            console.warn(`${proxy.name} link check skipped.`);
+            console.warn(`${proxy.name} bypassed.`);
         }
     }
     throw new Error("Blocked");
 }
 
-// FIXED PIPELINE: Complete isolation of manual text parsing vs live array crawling loops
-async function triggerExtractionWorkflow(isManualBypass = false) {
-    const inputs = document.querySelectorAll('.url-input');
-    const rawHtmlData = document.getElementById('raw-html-input').value.trim();
+// UNIFIED PIPELINE: Combines both live web scraping AND manual DOM dumps into a single calculation array
+async function triggerUnifiedExtractionWorkflow() {
+    const urlInputs = document.querySelectorAll('.url-input');
+    const htmlInputs = document.querySelectorAll('.html-input');
     const startBtn = document.getElementById('start-btn');
-    const bypassBtn = document.getElementById('bypass-btn');
     const statusDiv = document.getElementById('status-output');
     const urlResultsSection = document.getElementById('url-results-section');
     const phraseResultsSection = document.getElementById('phrase-results-section');
     
-    urlResultsSection.innerHTML = "<h2>جزئیات تشخیصی ساختار هر آدرس</h2>";
-    phraseResultsSection.innerHTML = "<h2>جداول تحلیل عبارات کلیدی تکرار شونده فارسی</h2>";
+    urlResultsSection.innerHTML = "<h2>جزئیات تشخیصی ساختار تفکیکی هر ورودی</h2>";
+    phraseResultsSection.innerHTML = "<h2>جداول تحلیل عبارات کلیدی تکرار شونده فارسی (مجموع کل ورودی‌ها)</h2>";
     
     let allExtractedTexts = [];
-    let perUrlPhrases = {}; 
+    let perSourcePhrases = {}; 
+
+    const activeUrls = Array.from(urlInputs).map(i => i.value.trim()).filter(url => url !== "");
+    const activeHtmlTexts = Array.from(htmlInputs).map(i => i.value.trim()).filter(text => text !== "");
+
+    if (activeUrls.length === 0 && activeHtmlTexts.length === 0) {
+        alert("خطا: هیچ آدرس اینترنتی یا سورس کدی برای پردازش وارد نشده است.");
+        return;
+    }
 
     startBtn.disabled = true;
-    bypassBtn.disabled = true;
+    statusDiv.style.display = "block";
 
-    if (isManualBypass) {
-        if (!rawHtmlData) {
-            alert("خطا: لطفاً ابتدا کدهای اچ‌تی‌ام‌ال سورس را در فیلد مربوطه پیست کنید.");
-            startBtn.disabled = false;
-            bypassBtn.disabled = false;
-            return;
-        }
-        statusDiv.style.display = "block";
-        statusDiv.innerText = "در حال پردازش ساختار کدهای متنی پیست شده...";
-        
-        // Directly process custom data block immediately
-        processHtmlDocument("سورس وارد شده دستی (Manual Page Source Paste)", rawHtmlData, allExtractedTexts, perUrlPhrases, urlResultsSection);
-    } else {
-        const urls = Array.from(inputs).map(i => i.value.trim()).filter(url => url !== "");
-        if (urls.length === 0) {
-            alert("دستور لغو شد: فیلدهای آدرس دامنه خالی است.");
-            startBtn.disabled = false;
-            bypassBtn.disabled = false;
-            return;
-        }
-
-        for (let url of urls) {
+    // 1. Process Live URLs
+    if (activeUrls.length > 0) {
+        for (let url of activeUrls) {
             try {
                 const htmlText = await fetchWithProxyFallback(url, statusDiv);
-                processHtmlDocument(url, htmlText, allExtractedTexts, perUrlPhrases, urlResultsSection);
+                processHtmlDocument(url, htmlText, allExtractedTexts, perSourcePhrases, urlResultsSection);
             } catch (error) {
                 renderErrorTable(url, urlResultsSection);
             }
         }
     }
 
-    // Process structural word evaluation profiles if dataset matches boundary size rule
+    // 2. Process Manual HTML inputs simultaneously
+    if (activeHtmlTexts.length > 0) {
+        activeHtmlTexts.forEach((htmlData, index) => {
+            statusDiv.innerText = `در حال استخراج داده‌های متنی سورس دستی شماره ${index + 1}...`;
+            processHtmlDocument(`سورس دستی وارد شده شماره ${index + 1}`, htmlData, allExtractedTexts, perSourcePhrases, urlResultsSection);
+        });
+    }
+
+    // 3. Aggregate everything together for measurement
     if (allExtractedTexts.length > 0) {
-        statusDiv.innerText = "در حال فرآوری آماری عبارات کلیدی متنی...";
+        statusDiv.innerText = "در حال فرآوری و متراژ آماری کل عبارات کلیدی به صورت یکپارچه...";
         const combinedGlobalText = allExtractedTexts.join(" ");
+        
         renderGlobalPhraseTables(combinedGlobalText, phraseResultsSection);
-        renderPerUrlPhraseTable(perUrlPhrases, phraseResultsSection);
-        statusDiv.innerText = "عملیات ارزیابی با موفقیت به پایان رسید!";
+        renderPerUrlPhraseTable(perSourcePhrases, phraseResultsSection);
+        
+        statusDiv.innerText = "عملیات ارزیابی ترکیبی با موفقیت به پایان رسید!";
     } else {
-        statusDiv.innerText = "تحلیل ناموفق بود: هیچ داده محتوایی برای ارزیابی به دست نیامد.";
+        statusDiv.innerText = "تحلیل ناموفق بود: هیچ متنی یافت نشد.";
     }
     
     startBtn.disabled = false;
-    bypassBtn.disabled = false;
 }
 
-function processHtmlDocument(label, htmlContent, allExtractedTexts, perUrlPhrases, container) {
+function processHtmlDocument(label, htmlContent, allExtractedTexts, perSourcePhrases, container) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlContent, "text/html");
 
@@ -505,7 +490,7 @@ function processHtmlDocument(label, htmlContent, allExtractedTexts, perUrlPhrase
     
     const combinedContentText = bodyText + " " + altTexts.join(" ");
     allExtractedTexts.push(combinedContentText);
-    perUrlPhrases[label] = combinedContentText;
+    perSourcePhrases[label] = combinedContentText;
 
     renderUrlTable(label, title, metaDesc, h1s, h2s, h3s, altTexts, container);
 }
@@ -515,7 +500,7 @@ function renderUrlTable(url, title, desc, h1s, h2s, h3s, altTexts, container) {
     card.className = 'card';
     const dynamicLink = url.startsWith('http') ? `<a href="${url}" target="_blank" style="direction:ltr; display:inline-block;">${url}</a>` : url;
     card.innerHTML = `
-        <h3 style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem; font-size:1rem; word-break: break-all;">هدف مبدا: ${dynamicLink}</h3>
+        <h3 style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem; font-size:1rem; word-break: break-all;">منبع ورودی: ${dynamicLink}</h3>
         <div class="table-responsive">
             <table>
                 <tbody>
@@ -537,7 +522,7 @@ function renderErrorTable(url, container) {
     card.className = 'card';
     card.innerHTML = `
         <h3 style="font-size:1rem; color:var(--error);">عدم دسترسی به آدرس: ${url}</h3>
-        <p class="error-msg">سرورهای امنیتی مبدا اتصال خزش مستقیم را مسدود کردند. راهکار قطعی: کلید‌های ترکیبی Ctrl+U را روی پنجره همان سایت فشار دهید، کل کدهای نمایش داده شده را کپی کرده و در باکس روش دوم پیست کنید و دکمه خاکستری را بزنید.</p>
+        <p class="error-msg">سرورهای امنیتی مبدا اتصال خزش مستقیم را مسدود کردند. راهکار قطعی: کدهای این صفحه را کپی کرده و در یکی از باکس‌های بخش دوم (سورس دستی HTML) پیست کنید تا همراه بقیه صفحات ارزیابی شود.</p>
     `;
     container.appendChild(card);
 }
@@ -568,7 +553,7 @@ function renderGlobalPhraseTables(globalText, container) {
         const div = document.createElement('div');
         div.className = 'card';
         div.innerHTML = `
-            <h4 style="margin-top:0; border-bottom: 1px solid var(--border-subtle); padding-bottom:0.5rem; color:var(--text-heading); font-size:0.95rem;">برترین ترکیبات ${len} کلمه‌ای مجموع آدرس‌ها</h4>
+            <h4 style="margin-top:0; border-bottom: 1px solid var(--border-subtle); padding-bottom:0.5rem; color:var(--text-heading); font-size:0.95rem;">برترین ترکیبات ${len} کلمه‌ای مجموع آدرس‌ها و کدهای دستی</h4>
             <div class="table-responsive">
                 <table>
                     <thead>
@@ -602,10 +587,10 @@ function formatTopTwoPhrases(text, phraseLen) {
     `).join('');
 }
 
-function renderPerUrlPhraseTable(perUrlPhrases, container) {
+function renderPerUrlPhraseTable(perSourcePhrases, container) {
     const div = document.createElement('div');
     div.className = 'card';
-    div.innerHTML = `<h3 style="margin-bottom:1rem;">جدول ۴.۵: تفکیک دو کلمه کلیدی برتر بر پایه هر منبع مستقل</h3>`;
+    div.innerHTML = `<h3 style="margin-bottom:1rem;">جدول نهایی: تفکیک دو کلمه کلیدی برتر به ازای هر تک ورودی (لینک یا متن دستی)</h3>`;
     
     let tableHtml = `
         <div class="table-responsive">
@@ -622,15 +607,18 @@ function renderPerUrlPhraseTable(perUrlPhrases, container) {
                 <tbody>
     `;
 
-    for (const [url, text] of Object.entries(perUrlPhrases)) {
+    for (const [sourceLabel, text] of Object.entries(perSourcePhrases)) {
         const cellP2 = formatTopTwoPhrases(text, 2);
         const cellP3 = formatTopTwoPhrases(text, 3);
         const cellP4 = formatTopTwoPhrases(text, 4);
         const cellP5 = formatTopTwoPhrases(text, 5);
 
+        const isUrl = sourceLabel.startsWith('http');
+        const stylizedLabel = isUrl ? `<small>${sourceLabel}</small>` : `<span>${sourceLabel}</span>`;
+
         tableHtml += `
             <tr>
-                <td data-label="منبع / آدرس" style="direction:ltr; text-align:left; word-break: break-all; color: var(--text-muted); font-size: 0.8rem; font-weight:500;"><small>${url}</small></td>
+                <td data-label="منبع / آدرس" style="direction:ltr; text-align:left; word-break: break-all; color: var(--text-muted); font-size: 0.8rem; font-weight:500;">${stylizedLabel}</td>
                 <td data-label="برترین‌های ۲ کلمه‌ای">${cellP2}</td>
                 <td data-label="برترین‌های ۳ کلمه‌ای">${cellP3}</td>
                 <td data-label="برترین‌های ۴ کلمه‌ای">${cellP4}</td>
