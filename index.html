@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>استخراج‌گر سئو و تحلیل‌گر عبارات فارسی</title>
+    <title>استخراج‌گر جامع سئو و تحلیل‌گر عبارات فارسی</title>
     <style>
         :root {
             /* Premium Chalk & Light Slate Minimalist Palette */
@@ -358,9 +358,10 @@
 <div class="container">
     <header>
         <h1>استخراج‌گر سئو و تحلیل‌گر عبارات فارسی</h1>
-        <p class="subtitle">سیستم پایش و متراژ کلمات کلیدی، برچسب‌های هیدینگ، تصاویر و متن‌های لنگر تفکیکی</p>
+        <p class="subtitle">سیستم پایش یکپارچه چگالی کلمات: ترکیب همزمان Title، Meta Description، هیدینگ‌ها، متون بدنه، Anchor Texts و ویژگی Alt</p>
     </header>
     
+    <!-- Unified App Control Panel -->
     <div class="card">
         <div class="dashboard-grid">
             <div class="control-group">
@@ -386,6 +387,7 @@
         <div id="status-output" class="status-bar"></div>
     </div>
 
+    <!-- Output Sections -->
     <div id="url-results-section"></div>
     <div id="phrase-results-section"></div>
 </div>
@@ -484,37 +486,32 @@ function processHtmlDocument(label, htmlContent, allExtractedTexts, perSourcePhr
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlContent, "text/html");
 
-    // Metadata
-    const title = doc.querySelector('title')?.innerText || "موجود نیست";
-    const metaDesc = doc.querySelector('meta[name="description"]')?.getAttribute('content') || "موجود نیست";
+    // ۱. استخراج متادیتاهای اصلی سئو
+    const title = doc.querySelector('title')?.innerText || "";
+    const metaDesc = doc.querySelector('meta[name="description"]')?.getAttribute('content') || "";
     
+    // ۲. استخراج ساختار تگ‌های محتوایی
     const h1s = Array.from(doc.querySelectorAll('h1')).map(el => el.innerText.trim());
     const h2s = Array.from(doc.querySelectorAll('h2')).map(el => el.innerText.trim());
     const h3s = Array.from(doc.querySelectorAll('h3')).map(el => el.innerText.trim());
     const altTexts = Array.from(doc.querySelectorAll('img')).map(img => img.getAttribute('alt')).filter(alt => alt && alt.trim() !== "").map(alt => alt.trim());
+    const anchorTexts = Array.from(doc.querySelectorAll('a')).map(el => el.innerText.trim()).filter(text => text !== "");
 
-    // --- فرآیند اختصاصی استخراج متن‌های لنگر (Anchor Texts) ---
-    // جمع‌آوری تمامی محتواهای متنی معتبر قرار گرفته بین تگ‌های <a> و </a>
-    const anchorTexts = Array.from(doc.querySelectorAll('a'))
-        .map(el => el.innerText.trim())
-        .filter(text => text !== "");
-
-    // مکانیزم جامع و ۱۰۰٪ پاک‌سازی سند برای استخراج کلمات بدنه اصلی
+    // ۳. مکانیزم پاک‌سازی پیشرفته برای استخراج محتوای بدنه اصلی
     const cleanDoc = doc.cloneNode(true);
-    // ما تگ a را حذف نمی‌کنیم تا متن آن (Anchor text) در بدنه اصلی باقی مانده و حتماً شمارش شود.
+    // تگ‌های لینک (a) حذف نمی‌شوند تا Anchor Textها کاملاً درون بدنه برای شمارش نهایی حفظ شوند.
     const elementsToRemove = cleanDoc.querySelectorAll('script, style, svg, path, iframe, nav, header, footer, noscript, link, head, dialog');
     elementsToRemove.forEach(el => el.remove());
 
-    // متغیر نهایی متن تمیز شده کل بدنه اصلی
     const pureBodyText = cleanDoc.body ? cleanDoc.body.innerText.replace(/\s+/g, ' ').trim() : "";
 
-    // ادغام نهایی: بدنه اصلی (شامل انکور تکست‌ها) + توصیف تصاویر (Alt) برای پردازش عبارات فراگیر
-    const totalUnifiedText = `${pureBodyText} ${altTexts.join(" ")}`;
+    // ۴. ترکیب همه‌جانبه کلمات (Title + Meta Description + Body Text + Alt Images) بدون حذف هیچ بخشی
+    const totalUnifiedText = `${title} ${metaDesc} ${pureBodyText} ${altTexts.join(" ")}`;
     
     allExtractedTexts.push(totalUnifiedText);
     perSourcePhrases[label] = totalUnifiedText;
 
-    // رندر کارت تحلیل به همراه افزودن بخش ردیف اختصاصی Anchor Texts و شبیه‌ساز کلمات
+    // رندر کارت‌های تشخیصی
     renderUrlTable(label, title, metaDesc, h1s, h2s, h3s, altTexts, anchorTexts, pureBodyText, container);
 }
 
@@ -526,8 +523,6 @@ function renderUrlTable(url, title, desc, h1s, h2s, h3s, altTexts, anchorTexts, 
     const wordsArray = pureBodyText.split(' ').filter(w => w.length > 0);
     const wordCount = wordsArray.length;
     const previewText = wordsArray.slice(0, 150).join(' ') + (wordCount > 150 ? ' ...' : '');
-
-    // فیلتر کردن لنگرهای تکراری صرفاً جهت خوانایی بهتر لیست ردیف مشخصات
     const uniqueAnchors = [...new Set(anchorTexts)];
 
     card.innerHTML = `
@@ -535,21 +530,19 @@ function renderUrlTable(url, title, desc, h1s, h2s, h3s, altTexts, anchorTexts, 
         <div class="table-responsive">
             <table>
                 <tbody>
-                    <tr><td style="width:25%" data-label="شاخص سئو"><strong>Title (عنوان صفحه)</strong></td><td data-label="محتوا" style="color:var(--text-heading); font-weight:600;">${title}</td></tr>
-                    <tr><td data-label="شاخص سئو"><strong>Meta Description</strong></td><td data-label="محتوا">${desc}</td></tr>
+                    <tr><td style="width:25%" data-label="شاخص سئو"><strong>Title (عنوان صفحه)</strong></td><td data-label="محتوا" style="color:var(--text-heading); font-weight:600;">${title || '<span style="color:var(--text-muted)">موجود نیست</span>'}</td></tr>
+                    <tr><td data-label="شاخص سئو"><strong>Meta Description</strong></td><td data-label="محتوا">${desc || '<span style="color:var(--text-muted)">موجود نیست</span>'}</td></tr>
                     <tr><td data-label="شاخص سئو"><strong>عناوین H1</strong></td><td data-label="محتوا">${h1s.length ? `<ul>${h1s.map(h => `<li>${h}</li>`).join('')}</ul>` : '<span style="color:var(--text-muted)">یافت نشد</span>'}</td></tr>
                     <tr><td data-label="شاخص سئو"><strong>عناوین H2</strong></td><td data-label="محتوا">${h2s.length ? `<ul>${h2s.map(h => `<li>${h}</li>`).join('')}</ul>` : '<span style="color:var(--text-muted)">یافت نشد</span>'}</td></tr>
                     <tr><td data-label="شاخص سئو"><strong>عناوین H3</strong></td><td data-label="محتوا">${h3s.length ? `<ul>${h3s.map(h => `<li>${h}</li>`).join('')}</ul>` : '<span style="color:var(--text-muted)">یافت نشد</span>'}</td></tr>
                     <tr><td data-label="شاخص سئو"><strong>متن تصاویر (Alt)</strong></td><td data-label="محتوا">${altTexts.length ? `<ul>${altTexts.map(a => `<li>${a}</li>`).join('')}</ul>` : '<span style="color:var(--text-muted)">تصویری با ویژگی alt یافت نشد</span>'}</td></tr>
-                    
                     <tr>
-                        <td data-label="شاخص سئو"><strong>متن‌های لنگر (Anchor Texts) شناسایی‌شده</strong></td>
+                        <td data-label="شاخص سئو"><strong>متن‌های لنگر (Anchor Texts)</strong></td>
                         <td data-label="محتوا">
-                            <span class="count-badge" style="margin-bottom: 0.5rem; display: inline-block;">تعداد کل تگ‌های لینک‌دار: ${anchorTexts.length} عدد</span>
-                            ${uniqueAnchors.length ? `<div style="max-height:100px; overflow-y:auto; font-size:0.85rem; color:var(--primary);"><ul>${uniqueAnchors.map(a => `<li>${a}</li>`).join('')}</ul></div>` : '<br><span style="color:var(--text-muted)">هیچ متنی درون تگ‌های لینک یافت نشد.</span>'}
+                            <span class="count-badge" style="margin-bottom: 0.5rem; display: inline-block;">تعداد کل لینک‌ها: ${anchorTexts.length} عدد</span>
+                            ${uniqueAnchors.length ? `<div style="max-height:100px; overflow-y:auto; font-size:0.85rem; color:var(--primary);"><ul>${uniqueAnchors.map(a => `<li>${a}</li>`).join('')}</ul></div>` : '<br><span style="color:var(--text-muted)">لینک متنی یافت نشد.</span>'}
                         </td>
                     </tr>
-
                     <tr>
                         <td data-label="شاخص سئو"><strong>متن استخراج‌شده از بدنه (شبیه‌سازی متن خالص)</strong></td>
                         <td data-label="محتوا">
@@ -600,7 +593,7 @@ function renderGlobalPhraseTables(globalText, container) {
         const div = document.createElement('div');
         div.className = 'card';
         div.innerHTML = `
-            <h4 style="margin-top:0; border-bottom: 1px solid var(--border-subtle); padding-bottom:0.5rem; color:var(--text-heading); font-size:0.95rem;">برترین ترکیبات ${len} کلمه‌ای مجموع آدرس‌ها و کدهای دستی</h4>
+            <h4 style="margin-top:0; border-bottom: 1px solid var(--border-subtle); padding-bottom:0.5rem; color:var(--text-heading); font-size:0.95rem;">برترین ترکیبات ${len} کلمه‌ای (شامل تایتل، متا، بادی، انکور و آلت)</h4>
             <div class="table-responsive">
                 <table>
                     <thead>
@@ -637,7 +630,7 @@ function formatTopTwoPhrases(text, phraseLen) {
 function renderPerUrlPhraseTable(perSourcePhrases, container) {
     const div = document.createElement('div');
     div.className = 'card';
-    div.innerHTML = `<h3 style="margin-bottom:1rem;">جدول نهایی: تفکیک دو کلمه کلیدی برتر به ازای هر تک ورودی (لینک یا متن دستی)</h3>`;
+    div.innerHTML = `<h3 style="margin-bottom:1rem;">جدول نهایی: تفکیک دو کلمه کلیدی برتر به ازای هر تک ورودی (شامل تایتل، متا و متن)</h3>`;
     
     let tableHtml = `
         <div class="table-responsive">
