@@ -45,7 +45,7 @@
 
         .container {
             width: 100%;
-            max-width: 1200px;
+            max-width: 1300px;
             margin: 0 auto;
         }
 
@@ -94,7 +94,6 @@
             margin: 0 0 1rem 0;
         }
 
-        /* Minimalist Modern Cards */
         .card {
             background-color: var(--bg-surface);
             border: 1px solid var(--border-subtle);
@@ -104,7 +103,6 @@
             box-shadow: 0 4px 20px -2px rgba(28, 25, 23, 0.03);
         }
 
-        /* Two Column Dynamic Dashboard */
         .dashboard-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -153,7 +151,6 @@
             box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
         }
 
-        /* Action Buttons */
         .btn-stack {
             display: flex;
             gap: 1rem;
@@ -188,7 +185,6 @@
             border: 1px solid var(--border-subtle);
         }
 
-        /* Status Feedback Area */
         .status-bar {
             margin-top: 1rem;
             padding: 0.75rem;
@@ -202,7 +198,55 @@
             display: none;
         }
 
-        /* Advanced Responsive Layout Framework */
+        /* Responsive Horizontal Scroll Container for Side-by-Side Comparison */
+        .scroll-container {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            background-color: var(--bg-surface);
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 20px -2px rgba(28, 25, 23, 0.03);
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* Fixed column layout framework for dynamic side-by-side matrices */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+            min-width: 1200px; /* Forces layout to preserve width and trigger scrollbar */
+            table-layout: fixed;
+        }
+
+        .comparison-table th, .comparison-table td {
+            padding: 1rem;
+            border: 1px solid var(--border-subtle);
+            vertical-align: top;
+            text-align: right;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        /* Row Headers (Sticky Right Column for easy tracking) */
+        .comparison-table th.metric-header, 
+        .comparison-table td.metric-header {
+            position: sticky;
+            right: 0;
+            background-color: var(--bg-neutral-light);
+            color: var(--text-heading);
+            font-weight: 700;
+            width: 180px;
+            z-index: 2;
+            border-left: 2px solid var(--border-subtle);
+        }
+
+        .comparison-table th.url-column-header {
+            background-color: var(--bg-main);
+            color: var(--text-heading);
+            font-weight: 700;
+        }
+
         .table-responsive {
             width: 100%;
             margin: 1rem 0;
@@ -247,7 +291,6 @@
             .flex-tables { grid-template-columns: repeat(2, 1fr); }
         }
 
-        /* Micro Phrase Design Badges */
         .phrase-item {
             display: flex;
             align-items: center;
@@ -275,7 +318,7 @@
             border-radius: var(--radius-sm);
         }
 
-        .error-msg {
+        .error-text {
             color: var(--error);
             font-size: 0.85rem;
             font-weight: 500;
@@ -288,68 +331,9 @@
             border-radius: var(--radius-md);
             font-size: 0.85rem;
             color: var(--text-body);
-            max-height: 120px;
+            max-height: 150px;
             overflow-y: auto;
             white-space: pre-line;
-        }
-
-        /* Responsive Mobile Layout Layer */
-        @media screen and (max-width: 768px) {
-            .table-responsive table, 
-            .table-responsive tbody, 
-            .table-responsive tr, 
-            .table-responsive td { 
-                display: block; 
-                width: 100%; 
-            }
-            
-            .table-responsive thead { 
-                display: none; 
-            }
-
-            .table-responsive tr {
-                background: var(--bg-surface);
-                border: 1px solid var(--border-subtle);
-                border-radius: var(--radius-md);
-                margin-bottom: 1rem;
-                padding: 0.75rem;
-            }
-
-            .table-responsive td {
-                text-align: right;
-                border-bottom: 1px dashed var(--border-subtle);
-                padding: 0.5rem 0;
-            }
-
-            .table-responsive td:last-child {
-                border-bottom: none;
-            }
-
-            .table-responsive td::before {
-                content: attr(data-label);
-                display: block;
-                font-size: 0.75rem;
-                font-weight: 700;
-                color: var(--text-muted);
-                margin-bottom: 0.2rem;
-                text-transform: uppercase;
-            }
-
-            #per-url-table-dom tbody tr {
-                display: flex;
-                flex-direction: column;
-                gap: 0.75rem;
-                border: 1px solid var(--border-subtle);
-                background-color: var(--bg-surface);
-                padding: 1rem;
-                margin-bottom: 1.5rem;
-                border-radius: var(--radius-lg);
-            }
-
-            #per-url-table-dom td {
-                border: none;
-                padding: 0;
-            }
         }
     </style>
 </head>
@@ -358,7 +342,7 @@
 <div class="container">
     <header>
         <h1>استخراج‌گر سئو و تحلیل‌گر عبارات فارسی</h1>
-        <p class="subtitle">سیستم پایش یکپارچه چگالی کلمات: ترکیب همزمان Title، Meta Description، هیدینگ‌ها، متون بدنه، Anchor Texts و ویژگی Alt</p>
+        <p class="subtitle">سیستم پایش یکپارچه چگالی کلمات و مقایسه ماتریسی ساختار وب‌سایت‌ها</p>
     </header>
     
     <div class="card">
@@ -386,7 +370,8 @@
         <div id="status-output" class="status-bar"></div>
     </div>
 
-    <div id="url-results-section"></div>
+    <div id="comparison-section"></div>
+    
     <div id="phrase-results-section"></div>
 </div>
 
@@ -427,14 +412,15 @@ async function triggerUnifiedExtractionWorkflow() {
     const htmlInputs = document.querySelectorAll('.html-input');
     const startBtn = document.getElementById('start-btn');
     const statusDiv = document.getElementById('status-output');
-    const urlResultsSection = document.getElementById('url-results-section');
+    const comparisonSection = document.getElementById('comparison-section');
     const phraseResultsSection = document.getElementById('phrase-results-section');
     
-    urlResultsSection.innerHTML = "<h2>جزئیات تشخیصی ساختار تفکیکی هر ورودی</h2>";
+    comparisonSection.innerHTML = "<h2>جدول مقایسه همزمان ساختار سئو و محتوای ورودی‌ها</h2>";
     phraseResultsSection.innerHTML = "<h2>جداول تحلیل عبارات کلیدی تکرار شونده فارسی (مجموع کل ورودی‌ها)</h2>";
     
     let allExtractedTexts = [];
     let perSourcePhrases = {}; 
+    let parsedSourcesData = []; // Array to store structured objects for the unified matrix row generation
 
     const activeUrls = Array.from(urlInputs).map(i => i.value.trim()).filter(url => url !== "");
     const activeHtmlTexts = Array.from(htmlInputs).map(i => i.value.trim()).filter(text => text !== "");
@@ -447,33 +433,43 @@ async function triggerUnifiedExtractionWorkflow() {
     startBtn.disabled = true;
     statusDiv.style.display = "block";
 
+    // Gather URL datasets
     if (activeUrls.length > 0) {
         for (let url of activeUrls) {
             try {
                 const htmlText = await fetchWithProxyFallback(url, statusDiv);
-                processHtmlDocument(url, htmlText, allExtractedTexts, perSourcePhrases, urlResultsSection);
+                const data = extractHtmlMetrics(url, htmlText, allExtractedTexts, perSourcePhrases);
+                parsedSourcesData.push(data);
             } catch (error) {
-                renderErrorTable(url, urlResultsSection);
+                parsedSourcesData.push({ label: url, isError: true });
             }
         }
     }
 
+    // Gather Manual Code inputs
     if (activeHtmlTexts.length > 0) {
         activeHtmlTexts.forEach((htmlData, index) => {
             statusDiv.innerText = `در حال استخراج داده‌های متنی سورس دستی شماره ${index + 1}...`;
             const label = `سورس دستی وارد شده شماره ${index + 1}`;
-            processHtmlDocument(label, htmlData, allExtractedTexts, perSourcePhrases, urlResultsSection);
+            const data = extractHtmlMetrics(label, htmlData, allExtractedTexts, perSourcePhrases);
+            parsedSourcesData.push(data);
         });
     }
 
-    if (allExtractedTexts.length > 0) {
-        statusDiv.innerText = "در حال فرآوری و متراژ آماری کل عبارات کلیدی به صورت یکپارچه...";
-        const combinedGlobalText = allExtractedTexts.join(" ");
+    if (parsedSourcesData.length > 0) {
+        statusDiv.innerText = "در حال ساخت ماتریس مقایسه‌ای و پردازش فرکانس کلیدواژه‌ها...";
         
+        // 1. Render the large horizontal-scroll matrix
+        renderUnifiedComparisonMatrix(parsedSourcesData, comparisonSection);
+
+        // 2. Render global term frequencies
+        const combinedGlobalText = allExtractedTexts.join(" ");
         renderGlobalPhraseTables(combinedGlobalText, phraseResultsSection);
+        
+        // 3. Render per-URL keyword frequency split rows
         renderPerUrlPhraseTable(perSourcePhrases, phraseResultsSection);
         
-        statusDiv.innerText = "عملیات ارزیابی ترکیبی با موفقیت به پایان رسید!";
+        statusDiv.innerText = "عملیات ارزیابی ماتریسی و تحلیل کلمات ترکیبی با موفقیت به پایان رسید!";
     } else {
         statusDiv.innerText = "تحلیل ناموفق بود: هیچ متنی یافت نشد.";
     }
@@ -481,29 +477,23 @@ async function triggerUnifiedExtractionWorkflow() {
     startBtn.disabled = false;
 }
 
-function processHtmlDocument(label, htmlContent, allExtractedTexts, perSourcePhrases, container) {
+function extractHtmlMetrics(label, htmlContent, allExtractedTexts, perSourcePhrases) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlContent, "text/html");
 
-    // ۱. استخراج متادیتاهای اصلی سئو
     const title = doc.querySelector('title')?.innerText || "";
     const metaDesc = doc.querySelector('meta[name="description"]')?.getAttribute('content') || "";
-    
-    // ۲. استخراج ساختار تگ‌های محتوایی
-    const h1s = Array.from(doc.querySelectorAll('h1')).map(el => el.innerText.trim());
-    const h2s = Array.from(doc.querySelectorAll('h2')).map(el => el.innerText.trim());
-    const h3s = Array.from(doc.querySelectorAll('h3')).map(el => el.innerText.trim());
+    const h1s = Array.from(doc.querySelectorAll('h1')).map(el => el.innerText.trim()).filter(t => t !== "");
+    const h2s = Array.from(doc.querySelectorAll('h2')).map(el => el.innerText.trim()).filter(t => t !== "");
+    const h3s = Array.from(doc.querySelectorAll('h3')).map(el => el.innerText.trim()).filter(t => t !== "");
     const altTexts = Array.from(doc.querySelectorAll('img')).map(img => img.getAttribute('alt')).filter(alt => alt && alt.trim() !== "").map(alt => alt.trim());
     const anchorTexts = Array.from(doc.querySelectorAll('a')).map(el => el.innerText.trim()).filter(text => text !== "");
 
-    // ۳. مکانیزم پاک‌سازی پیشرفته برای استخراج محتوای بدنه اصلی
     const cleanDoc = doc.cloneNode(true);
     const elementsToRemove = cleanDoc.querySelectorAll('script, style, svg, path, iframe, nav, header, footer, noscript, link, head, dialog');
     elementsToRemove.forEach(el => el.remove());
-
     const pureBodyText = cleanDoc.body ? cleanDoc.body.innerText.replace(/\s+/g, ' ').trim() : "";
 
-    // ۴. ترکیب همه‌جانبه تمام عبارات همین لینک (Title + Description + Headings + AnchorTexts + Alts + Body)
     const combinedLinkElementsText = `
         ${title} ${metaDesc} 
         ${h1s.join(" ")} ${h2s.join(" ")} ${h3s.join(" ")} 
@@ -512,62 +502,78 @@ function processHtmlDocument(label, htmlContent, allExtractedTexts, perSourcePhr
     `;
     
     allExtractedTexts.push(combinedLinkElementsText);
-    perSourcePhrases[label] = combinedLinkElementsText; // دیتابیس اختصاصی این لینک برای جدول نهایی
+    perSourcePhrases[label] = combinedLinkElementsText;
 
-    // رندر کارت‌های تشخصیصی تفکیکی
-    renderUrlTable(label, title, metaDesc, h1s, h2s, h3s, altTexts, anchorTexts, pureBodyText, container);
+    return {
+        label, isError: false, title, metaDesc, h1s, h2s, h3s, altTexts, anchorTexts, pureBodyText
+    };
 }
 
-function renderUrlTable(url, title, desc, h1s, h2s, h3s, altTexts, anchorTexts, pureBodyText, container) {
-    const card = document.createElement('div');
-    card.className = 'card';
-    const dynamicLink = url.startsWith('http') ? `<a href="${url}" target="_blank" style="direction:ltr; display:inline-block;">${url}</a>` : url;
+function renderUnifiedComparisonMatrix(sources, container) {
+    const scrollWrapper = document.createElement('div');
+    scrollWrapper.className = 'scroll-container';
+
+    let tableHtml = `<table class="comparison-table"><thead><tr><th class="metric-header">شاخص‌های ساختاری سئو</th>`;
     
-    const wordsArray = pureBodyText.split(' ').filter(w => w.length > 0);
-    const wordCount = wordsArray.length;
-    const previewText = wordsArray.slice(0, 150).join(' ') + (wordCount > 150 ? ' ...' : '');
-    const uniqueAnchors = [...new Set(anchorTexts)];
+    // Header Row: Display source tags/links
+    sources.forEach(src => {
+        const displayLabel = src.label.startsWith('http') ? `<a href="${src.label}" target="_blank">${src.label}</a>` : src.label;
+        tableHtml += `<th class="url-column-header" style="direction: ltr; text-align: left;">${displayLabel}</th>`;
+    });
+    tableHtml += `</tr></thead><tbody>`;
 
-    card.innerHTML = `
-        <h3 style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem; font-size:1rem; word-break: break-all;">منبع ورودی: ${dynamicLink}</h3>
-        <div class="table-responsive">
-            <table>
-                <tbody>
-                    <tr><td style="width:25%" data-label="شاخص سئو"><strong>Title (عنوان صفحه)</strong></td><td data-label="محتوا" style="color:var(--text-heading); font-weight:600;">${title || '<span style="color:var(--text-muted)">موجود نیست</span>'}</td></tr>
-                    <tr><td data-label="شاخص سئو"><strong>Meta Description</strong></td><td data-label="محتوا">${desc || '<span style="color:var(--text-muted)">موجود نیست</span>'}</td></tr>
-                    <tr><td data-label="شاخص سئو"><strong>عناوین H1</strong></td><td data-label="محتوا">${h1s.length ? `<ul>${h1s.map(h => `<li>${h}</li>`).join('')}</ul>` : '<span style="color:var(--text-muted)">یافت نشد</span>'}</td></tr>
-                    <tr><td data-label="شاخص سئو"><strong>عناوین H2</strong></td><td data-label="محتوا">${h2s.length ? `<ul>${h2s.map(h => `<li>${h}</li>`).join('')}</ul>` : '<span style="color:var(--text-muted)">یافت نشد</span>'}</td></tr>
-                    <tr><td data-label="شاخص سئو"><strong>عناوین H3</strong></td><td data-label="محتوا">${h3s.length ? `<ul>${h3s.map(h => `<li>${h}</li>`).join('')}</ul>` : '<span style="color:var(--text-muted)">یافت نشد</span>'}</td></tr>
-                    <tr><td data-label="شاخص سئو"><strong>متن تصاویر (Alt)</strong></td><td data-label="محتوا">${altTexts.length ? `<ul>${altTexts.map(a => `<li>${a}</li>`).join('')}</ul>` : '<span style="color:var(--text-muted)">تصویری با ویژگی alt یافت نشد</span>'}</td></tr>
-                    <tr>
-                        <td data-label="شاخص سئو"><strong>متن‌های لنگر (Anchor Texts)</strong></td>
-                        <td data-label="محتوا">
-                            <span class="count-badge" style="margin-bottom: 0.5rem; display: inline-block;">تعداد کل لینک‌ها: ${anchorTexts.length} عدد</span>
-                            ${uniqueAnchors.length ? `<div style="max-height:100px; overflow-y:auto; font-size:0.85rem; color:var(--primary);"><ul>${uniqueAnchors.map(a => `<li>${a}</li>`).join('')}</ul></div>` : '<br><span style="color:var(--text-muted)">لینک متنی یافت نشد.</span>'}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td data-label="شاخص سئو"><strong>متن استخراج‌شده از بدنه (شبیه‌سازی متن خالص)</strong></td>
-                        <td data-label="محتوا">
-                            <span class="count-badge" style="margin-bottom: 0.5rem; display: inline-block;">حجم محتوای شناسایی شده: ${wordCount} کلمه خالص</span>
-                            <div class="body-preview-box">${previewText || '<span style="color:var(--error)">هیچ متنی یافت نشد!</span>'}</div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    `;
-    container.appendChild(card);
-}
+    // Define standard fields to loop through for dynamic alignment
+    const metrics = [
+        { id: 'title', label: 'Title (عنوان صفحه)' },
+        { id: 'metaDesc', label: 'Meta Description' },
+        { id: 'h1s', label: 'تگ‌های H1' },
+        { id: 'h2s', label: 'تگ‌های H2' },
+        { id: 'h3s', label: 'تگ‌های H3' },
+        { id: 'altTexts', label: 'متن تصاویر (Alt)' },
+        { id: 'anchorTexts', label: 'متن لینک‌ها (Anchor Text)' },
+        { id: 'pureBodyText', label: 'متن خالص بدنه (بخش پیش‌فرض)' }
+    ];
 
-function renderErrorTable(url, container) {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `
-        <h3 style="font-size:1rem; color:var(--error);">عدم دسترسی به آدرس: ${url}</h3>
-        <p class="error-msg">سرورهای امنیتی مبدا اتصال خزش مستقیم را مسدود کردند. راهکار قطعی: کدهای این صفحه را کپی کرده و در یکی از باکس‌های بخش دوم (سورس دستی HTML) پیست کنید تا همراه بقیه صفحات ارزیابی شود.</p>
-    `;
-    container.appendChild(card);
+    metrics.forEach(metric => {
+        tableHtml += `<tr><td class="metric-header">${metric.label}</td>`;
+        
+        sources.forEach(src => {
+            if (src.isError) {
+                tableHtml += `<td class="error-text">عدم دسترسی مبدا! لطفاً سورس کد صفحه را کپی کرده و به صورت دستی در بخش دوم قرار دهید.</td>`;
+                return;
+            }
+
+            let cellContent = "";
+            if (metric.id === 'title') {
+                cellContent = src.title ? `<strong style="color:var(--text-heading);">${src.title}</strong>` : '<span style="color:var(--text-muted)">موجود نیست</span>';
+            } else if (metric.id === 'metaDesc') {
+                cellContent = src.metaDesc || '<span style="color:var(--text-muted)">موجود نیست</span>';
+            } else if (['h1s', 'h2s', 'h3s', 'altTexts'].includes(metric.id)) {
+                const list = src[metric.id];
+                cellContent = list.length ? `<ul>${list.map(item => `<li>${item}</li>`).join('')}</ul>` : '<span style="color:var(--text-muted)">یافت نشد</span>';
+            } else if (metric.id === 'anchorTexts') {
+                const uniqueAnchors = [...new Set(src.anchorTexts)];
+                cellContent = src.anchorTexts.length ? `
+                    <span class="count-badge" style="margin-bottom:0.5rem; display:inline-block;">تعداد کل: ${src.anchorTexts.length} لینک</span>
+                    <div style="max-height:120px; overflow-y:auto; font-size:0.85rem; color:var(--primary);"><ul>${uniqueAnchors.map(a => `<li>${a}</li>`).join('')}</ul></div>
+                ` : '<span style="color:var(--text-muted)">لینک متنی یافت نشد</span>';
+            } else if (metric.id === 'pureBodyText') {
+                const words = src.pureBodyText.split(' ').filter(w => w.length > 0);
+                const preview = words.slice(0, 100).join(' ') + (words.length > 100 ? ' ...' : '');
+                cellContent = words.length ? `
+                    <span class="count-badge" style="margin-bottom:0.5rem; display:inline-block;">تعداد کل: ${words.length} کلمه</span>
+                    <div class="body-preview-box">${preview}</div>
+                ` : '<span style="color:var(--error)">متنی دریافت نشد</span>';
+            }
+
+            tableHtml += `<td>${cellContent}</td>`;
+        });
+        tableHtml += `</tr>`;
+    });
+
+    tableHtml += `</tbody></table>`;
+    scrollWrapper.innerHTML = tableHtml;
+    container.appendChild(scrollWrapper);
 }
 
 function getTopPhrases(text, phraseLength, topCount = 10) {
@@ -596,7 +602,7 @@ function renderGlobalPhraseTables(globalText, container) {
         const div = document.createElement('div');
         div.className = 'card';
         div.innerHTML = `
-            <h4 style="margin-top:0; border-bottom: 1px solid var(--border-subtle); padding-bottom:0.5rem; color:var(--text-heading); font-size:0.95rem;">برترین ترکیبات ${len} کلمه‌ای (شامل تایتل، متا، بادی، انکور و آلت)</h4>
+            <h4 style="margin-top:0; border-bottom: 1px solid var(--border-subtle); padding-bottom:0.5rem; color:var(--text-heading); font-size:0.95rem;">برترین ترکیبات ${len} کلمه‌ای (مجموع کل ورودی‌ها)</h4>
             <div class="table-responsive">
                 <table>
                     <thead>
@@ -640,7 +646,7 @@ function renderPerUrlPhraseTable(perSourcePhrases, container) {
     
     let tableHtml = `
         <div class="table-responsive">
-            <table id="per-url-table-dom">
+            <table>
                 <thead>
                     <tr>
                         <th style="direction:ltr; text-align:left; width: 25%">منبع ورودی اطلاعات</th>
