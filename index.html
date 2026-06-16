@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>استخراج‌گر جامع سئو با فیلتر عبارات عمومی فروشگاهی (نسخه ۴ عبارت برتر)</title>
+    <title>استخراج‌گر جامع سئو (نسخه ماتریس اختصاصی - ۱۲ عبارت برتر)</title>
     <style>
         :root {
             --bg-main: #fcfbf9;
@@ -42,7 +42,7 @@
 
         .container {
             width: 100%;
-            max-width: 1200px;
+            max-width: 1400px; /* Wider container for 12 phrases display layout */
             margin: 0 auto;
         }
 
@@ -94,11 +94,11 @@
 
         .seo-tag {
             display: inline-block;
-            font-size: 0.7rem;
+            font-size: 0.65rem;
             font-weight: 800;
-            padding: 0.15rem 0.4rem;
-            border-radius: 4px;
-            margin-right: 0.35rem;
+            padding: 0.1rem 0.3rem;
+            border-radius: 3px;
+            margin-right: 0.25rem;
             font-family: monospace;
             vertical-align: middle;
         }
@@ -172,12 +172,9 @@
         }
 
         .table-responsive { width: 100%; margin: 1rem 0; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
-        th { background-color: var(--bg-main); color: var(--text-heading); font-weight: 700; padding: 0.85rem 1rem; border-bottom: 2px solid var(--border-subtle); }
-        td { padding: 0.85rem 1rem; text-align: right; border-bottom: 1px solid var(--border-subtle); }
-        
-        .flex-tables { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
-        @media (min-width: 768px) { .flex-tables { grid-template-columns: repeat(2, 1fr); } }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th { background-color: var(--bg-main); color: var(--text-heading); font-weight: 700; padding: 0.85rem 0.5rem; border-bottom: 2px solid var(--border-subtle); text-align: center; }
+        td { padding: 0.6rem 0.5rem; text-align: right; border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
 
         .phrase-item {
             display: flex;
@@ -185,14 +182,15 @@
             justify-content: space-between;
             background-color: var(--bg-main);
             border: 1px solid var(--border-subtle);
-            padding: 0.4rem 0.6rem;
+            padding: 0.3rem 0.5rem;
             border-radius: var(--radius-sm);
-            margin-bottom: 0.4rem;
+            margin-bottom: 0.35rem;
+            font-size: 0.8rem;
         }
         
-        .phrase-wrapper { display: flex; align-items: center; flex-wrap: wrap; gap: 0.25rem; }
+        .phrase-wrapper { display: flex; align-items: center; flex-wrap: wrap; gap: 0.2rem; }
         .phrase-text { color: var(--text-heading); font-weight: 500; }
-        .count-badge { font-size: 0.75rem; font-weight: 700; color: var(--accent); background-color: var(--accent-bg); padding: 0.1rem 0.4rem; border-radius: var(--radius-sm); }
+        .count-badge { font-size: 0.7rem; font-weight: 700; color: var(--accent); background-color: var(--accent-bg); padding: 0.05rem 0.3rem; border-radius: var(--radius-sm); white-space: nowrap; }
         .body-preview-box { background-color: var(--bg-main); border: 1px dashed var(--border-subtle); padding: 0.75rem; border-radius: var(--radius-md); max-height: 120px; overflow-y: auto; white-space: pre-line; font-size: 0.85rem; }
         
         .filter-notice {
@@ -215,13 +213,13 @@
     
     <div class="card">
         <div class="filter-notice">
-            <strong>صافی هوشمند فعال است:</strong> کلمات عمومی فروشگاهی مانند «هزار، تومان، محصول، سبد خرید، افزودن به سبد خرید» به طور خودکار از محاسبات چگالی حذف خواهند شد تا ارزش عبارات تخصصی مشخص شود. (نمایش تا ۴ عبارت برتر در ماتریس نهایی)
+            <strong>صافی هوشمند فعال است:</strong> کلمات عمومی فروشگاهی مانند «هزار، تومان، محصول، سبد خرید، افزودن به سبد خرید» به طور خودکار از محاسبات چگالی حذف خواهند شد تا ارزش عبارات تخصصی مشخص شود. (نمایش تا ۱۲ عبارت برتر در ماتریس نهایی به صورت فشرده)
         </div>
 
         <div class="dashboard-grid">
             <div class="control-group">
                 <label>بخش اول: استخراج خودکار آدرس‌ها (تا ۵ آدرس همزمان)</label>
-                <input type="url" class="url-input" placeholder="https://example1.com">
+                <input type="url" class="url-input" placeholder="https://example1.com" value="https://kayhanravan.ir/arshad/clinical-general-psychology/">
                 <input type="url" class="url-input" placeholder="https://example2.com">
                 <input type="url" class="url-input" placeholder="https://example3.com">
                 <input type="url" class="url-input" placeholder="https://example4.com">
@@ -284,10 +282,9 @@ async function triggerUnifiedExtractionWorkflow() {
     const phraseResultsSection = document.getElementById('phrase-results-section');
     
     urlResultsSection.innerHTML = "<h2>جزئیات تشخیصی ساختار تفکیکی هر ورودی</h2>";
-    phraseResultsSection.innerHTML = "<h2>جداول تحلیل عبارات کلیدی تکرار شونده فارسی (مجموع کل ورودی‌ها)</h2>";
+    phraseResultsSection.innerHTML = ""; 
     
     seoContextData = { titles: [], h1s: [], descriptions: [] };
-    let allExtractedTexts = [];
     let perSourcePhrases = {}; 
 
     const activeUrls = Array.from(urlInputs).map(i => i.value.trim()).filter(url => url !== "");
@@ -305,7 +302,7 @@ async function triggerUnifiedExtractionWorkflow() {
         for (let url of activeUrls) {
             try {
                 const htmlText = await fetchWithProxyFallback(url, statusDiv);
-                processHtmlDocument(url, htmlText, allExtractedTexts, perSourcePhrases, urlResultsSection);
+                processHtmlDocument(url, htmlText, perSourcePhrases, urlResultsSection);
             } catch (error) {
                 renderErrorTable(url, urlResultsSection);
             }
@@ -316,25 +313,23 @@ async function triggerUnifiedExtractionWorkflow() {
         activeHtmlTexts.forEach((htmlData, index) => {
             statusDiv.innerText = `در حال استخراج داده‌های متنی سورس دستی شماره ${index + 1}...`;
             const label = `سورس دستی وارد شده شماره ${index + 1}`;
-            processHtmlDocument(label, htmlData, allExtractedTexts, perSourcePhrases, urlResultsSection);
+            processHtmlDocument(label, htmlData, perSourcePhrases, urlResultsSection);
         });
     }
 
-    if (allExtractedTexts.length > 0) {
-        statusDiv.innerText = "در حال فرآوری و متراژ آماری کل عبارات کلیدی به صورت یکپارچه...";
-        const combinedGlobalText = allExtractedTexts.join(" ");
+    if (Object.keys(perSourcePhrases).length > 0) {
+        statusDiv.innerText = "در حال فرآوری و متراژ آماری کل عبارات کلیدی به ازای هر ورودی...";
         
-        renderGlobalPhraseTables(combinedGlobalText, phraseResultsSection);
         renderPerUrlPhraseTable(perSourcePhrases, phraseResultsSection);
         
-        statusDiv.innerText = "عملیات ارزیابی ترکیبی با موفقیت به پایان رسید!";
+        statusDiv.innerText = "عملیات ارزیابی با موفقیت به پایان رسید!";
     } else {
         statusDiv.innerText = "تحلیل ناموفق بود: هیچ متنی یافت نشد.";
     }
     startBtn.disabled = false;
 }
 
-function processHtmlDocument(label, htmlContent, allExtractedTexts, perSourcePhrases, container) {
+function processHtmlDocument(label, htmlContent, perSourcePhrases, container) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlContent, "text/html");
 
@@ -360,7 +355,6 @@ function processHtmlDocument(label, htmlContent, allExtractedTexts, perSourcePhr
         ${anchorTexts.join(" ")} ${altTexts.join(" ")} ${pureBodyText}
     `;
     
-    allExtractedTexts.push(combinedLinkElementsText);
     perSourcePhrases[label] = combinedLinkElementsText; 
 
     renderUrlTable(label, title, metaDesc, h1s, h2s, h3s, altTexts, anchorTexts, pureBodyText, container);
@@ -434,48 +428,12 @@ function generateSeoBadges(phrase) {
     return badgesHtml;
 }
 
-function renderGlobalPhraseTables(globalText, container) {
-    const flexContainer = document.createElement('div');
-    flexContainer.className = 'flex-tables';
+// Updated argument to extract up to 12 dynamic values per syllabus column
+function formatTopTwelvePhrases(text, phraseLen) {
+    const topTwelve = getTopPhrases(text, phraseLen, 12);
+    if (topTwelve.length === 0) return '<span style="color:var(--text-muted)">یافت نشد</span>';
     
-    for (let len = 2; len <= 5; len++) {
-        const topPhrases = getTopPhrases(globalText, len, 10);
-        const div = document.createElement('div');
-        div.className = 'card';
-        div.innerHTML = `
-            <h4 style="margin-top:0; border-bottom: 1px solid var(--border-subtle); padding-bottom:0.5rem; font-size:0.95rem;">برترین ترکیبات ${len} کلمه‌ای</h4>
-            <div class="table-responsive">
-                <table>
-                    <thead>
-                        <tr><th>عبارت فارسی</th><th style="width:35%; text-align:center;">فرکانس تکرار</th></tr>
-                    </thead>
-                    <tbody>
-                        ${topPhrases.map(([phrase, count]) => `
-                            <tr>
-                                <td>
-                                    <div class="phrase-wrapper">
-                                        <span class="phrase-text"><strong>${phrase}</strong></span>
-                                        ${generateSeoBadges(phrase)}
-                                    </div>
-                                </td>
-                                <td style="text-align:center;"><span class="count-badge">${count} بار</span></td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            </div>
-        `;
-        flexContainer.appendChild(div);
-    }
-    container.appendChild(flexContainer);
-}
-
-// Updated limit parameter: Fetches top 4 dynamic values per cell column
-function formatTopFourPhrases(text, phraseLen) {
-    const topFour = getTopPhrases(text, phraseLen, 4);
-    if (topFour.length === 0) return '<span style="color:var(--text-muted)">یافت نشد</span>';
-    
-    return topFour.map(([phrase, count]) => `
+    return topTwelve.map(([phrase, count]) => `
         <div class="phrase-item">
             <div class="phrase-wrapper">
                 <span class="phrase-text">${phrase}</span>
@@ -489,14 +447,14 @@ function formatTopFourPhrases(text, phraseLen) {
 function renderPerUrlPhraseTable(perSourcePhrases, container) {
     const div = document.createElement('div');
     div.className = 'card';
-    div.innerHTML = `<h3>جدول نهایی: تفکیک چهار عبارت کلیدی برتر به ازای هر ورودی</h3>`;
+    div.innerHTML = `<h2>جدول تفکیک دوازده عبارت کلیدی برتر به ازای هر ورودی اطلاعات</h2>`;
     
     let tableHtml = `
         <div class="table-responsive">
             <table id="per-url-table-dom">
                 <thead>
                     <tr>
-                        <th style="direction:ltr; text-align:left; width: 22%">منبع ورودی اطلاعات</th>
+                        <th style="direction:ltr; text-align:left; width: 16%">منبع ورودی اطلاعات</th>
                         <th>عبارات ۲ کلمه‌ای</th>
                         <th>عبارات ۳ کلمه‌ای</th>
                         <th>عبارات ۴ کلمه‌ای</th>
@@ -507,17 +465,17 @@ function renderPerUrlPhraseTable(perSourcePhrases, container) {
     `;
 
     for (const [sourceLabel, text] of Object.entries(perSourcePhrases)) {
-        const cellP2 = formatTopFourPhrases(text, 2);
-        const cellP3 = formatTopFourPhrases(text, 3);
-        const cellP4 = formatTopFourPhrases(text, 4);
-        const cellP5 = formatTopFourPhrases(text, 5);
+        const cellP2 = formatTopTwelvePhrases(text, 2);
+        const cellP3 = formatTopTwelvePhrases(text, 3);
+        const cellP4 = formatTopTwelvePhrases(text, 4);
+        const cellP5 = formatTopTwelvePhrases(text, 5);
 
         const isUrl = sourceLabel.startsWith('http');
         const stylizedLabel = isUrl ? `<small>${sourceLabel}</small>` : `<span>${sourceLabel}</span>`;
 
         tableHtml += `
             <tr>
-                <td style="direction:ltr; text-align:left; word-break: break-all; font-size: 0.8rem;">${stylizedLabel}</td>
+                <td style="direction:ltr; text-align:left; word-break: break-all; font-size: 0.8rem; padding-top:1rem;">${stylizedLabel}</td>
                 <td>${cellP2}</td>
                 <td>${cellP3}</td>
                 <td>${cellP4}</td>
