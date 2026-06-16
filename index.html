@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>استخراج‌گر جامع سئو و تحلیل‌گر عبارات فارسی</title>
+    <title>استخراج‌گر جامع سئو و تحلیل‌گر عبارات فارسی (نسخه نشانه‌گذاری وزنی)</title>
     <style>
         :root {
             /* Premium Chalk & Light Slate Minimalist Palette */
@@ -103,6 +103,22 @@
             margin-bottom: 1.5rem;
             box-shadow: 0 4px 20px -2px rgba(28, 25, 23, 0.03);
         }
+
+        /* Legend Style for SEO Abstract Tags */
+        .seo-legend {
+            display: flex;
+            gap: 1.5rem;
+            background-color: var(--bg-neutral-light);
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 1.5rem;
+            font-size: 0.85rem;
+            flex-wrap: wrap;
+        }
+        .legend-item { display: flex; align-items: center; gap: 0.35rem; }
+        .badge-t { background-color: #3b82f6; color: white; padding: 0.1rem 0.4rem; border-radius: 4px; font-weight: bold; font-family: monospace; }
+        .badge-h1 { background-color: #10b981; color: white; padding: 0.1rem 0.4rem; border-radius: 4px; font-weight: bold; font-family: monospace; }
+        .badge-md { background-color: #8b5cf6; color: white; padding: 0.1rem 0.4rem; border-radius: 4px; font-weight: bold; font-family: monospace; }
 
         /* Two Column Dynamic Dashboard */
         .dashboard-grid {
@@ -264,6 +280,8 @@
         .phrase-text {
             color: var(--text-heading);
             font-weight: 500;
+            direction: ltr; /* Keeps structural tokens like t, h1 readable */
+            text-align: right;
         }
         
         .count-badge {
@@ -357,9 +375,17 @@
 
 <div class="container">
     <header>
-        <h1>استخراج‌گر سئو و تحلیل‌گر عبارات فارسی</h1>
-        <p class="subtitle">سیستم پایش یکپارچه چگالی کلمات: ترکیب همزمان Title، Meta Description، هیدینگ‌ها، متون بدنه، Anchor Texts و ویژگی Alt</p>
+        <h1>استخراج‌گر سئو و تحلیل‌گر وزنی عبارات فارسی</h1>
+        <p class="subtitle">سیستم پایش یکپارچه چگالی کلمات با قابلیت تفکیک ساختار و وزن‌دهی تایتل (t)، هدینگ اول (h1) و متادیسکریپشن (md)</p>
     </header>
+
+    <div class="seo-legend">
+        <div class="legend-item"><strong>راهنمای نشانه‌های سئو:</strong></div>
+        <div class="legend-item"><span class="badge-t">t</span> کلمات موجود در Title صفحه</div>
+        <div class="legend-item"><span class="badge-h1">h1</span> کلمات موجود در تگ H1 اصلی</div>
+        <div class="legend-item"><span class="badge-md">md</span> کلمات موجود در Meta Description</div>
+        <div class="legend-item"><em>(کلمات بدون نشانه متعلق به متن بدنه، پیوندها، آلت‌ها یا سایر هدینگ‌ها هستند)</em></div>
+    </div>
     
     <div class="card">
         <div class="dashboard-grid">
@@ -503,18 +529,34 @@ function processHtmlDocument(label, htmlContent, allExtractedTexts, perSourcePhr
 
     const pureBodyText = cleanDoc.body ? cleanDoc.body.innerText.replace(/\s+/g, ' ').trim() : "";
 
-    // ۴. ترکیب همه‌جانبه تمام عبارات همین لینک (Title + Description + Headings + AnchorTexts + Alts + Body)
+    // تابع کمکی برای تزریق انتزاعی نشانه‌ها (t, h1, md) به ابتدای تک‌تک کلمات فارسی موجود در آن تگ
+    const injectMarker = (textStr, marker) => {
+        if (!textStr) return "";
+        const persianRegex = /[\u0600-\u06FF\uFB8A\u067E\u0686\u06AF\u200C]+/g;
+        const words = textStr.match(persianRegex);
+        if (!words) return "";
+        return words.map(word => `${marker}${word}`).join(" ");
+    };
+
+    // آماده‌سازی بخش‌های نشانه‌گذاری شده برای ارزیابی وزنی کلمات کلیدی
+    const markedTitle = injectMarker(title, "t");
+    const markedMetaDesc = injectMarker(metaDesc, "md");
+    const markedH1s = h1s.map(h1 => injectMarker(h1, "h1")).join(" ");
+
+    // ۴. ترکیب همه‌جانبه تمام عبارات همین لینک با تگ‌های وزنی اختصاصی سئو
     const combinedLinkElementsText = `
-        ${title} ${metaDesc} 
-        ${h1s.join(" ")} ${h2s.join(" ")} ${h3s.join(" ")} 
+        ${markedTitle} 
+        ${markedMetaDesc} 
+        ${markedH1s} 
+        ${h2s.join(" ")} ${h3s.join(" ")} 
         ${anchorTexts.join(" ")} ${altTexts.join(" ")} 
         ${pureBodyText}
     `;
     
     allExtractedTexts.push(combinedLinkElementsText);
-    perSourcePhrases[label] = combinedLinkElementsText; // دیتابیس اختصاصی این لینک برای جدول نهایی
+    perSourcePhrases[label] = combinedLinkElementsText; 
 
-    // رندر کارت‌های تشخصیصی تفکیکی
+    // رندر کارت‌های تشخصیصی تفکیکی (همچنان متون خام را برای دیباگ بصری انسانی استفاده می‌کند)
     renderUrlTable(label, title, metaDesc, h1s, h2s, h3s, altTexts, anchorTexts, pureBodyText, container);
 }
 
@@ -571,11 +613,11 @@ function renderErrorTable(url, container) {
 }
 
 function getTopPhrases(text, phraseLength, topCount = 10) {
-    const persianRegex = /[\u0600-\u06FF\uFB8A\u067E\u0686\u06AF\u200C]+/g;
-    const foundWords = text.match(persianRegex);
+    // اصلاح ریجکس برای پشتیبانی اختیاری از پیشوندهای کاراکتری (t, h1, md) درست پیش از واژگان اصلی فارسی
+    const weightedPersianRegex = /(?:t|h1|md)?[\u0600-\u06FF\uFB8A\u067E\u0686\u06AF\u200C]+/g;
+    const foundWords = text.match(weightedPersianRegex);
     if (!foundWords) return [];
 
-    // Kept empty so NO Persian words are deleted or filtered out
     const stopWords = []; 
     const words = foundWords.filter(word => !stopWords.includes(word) && word.length > 1);
 
@@ -597,16 +639,16 @@ function renderGlobalPhraseTables(globalText, container) {
         const div = document.createElement('div');
         div.className = 'card';
         div.innerHTML = `
-            <h4 style="margin-top:0; border-bottom: 1px solid var(--border-subtle); padding-bottom:0.5rem; color:var(--text-heading); font-size:0.95rem;">برترین ترکیبات ${len} کلمه‌ای (شامل تایتل، متا، بادی، انکور و آلت)</h4>
+            <h4 style="margin-top:0; border-bottom: 1px solid var(--border-subtle); padding-bottom:0.5rem; color:var(--text-heading); font-size:0.95rem;">برترین ترکیبات ${len} کلمه‌ای (تحلیل وزنی تایتل، متا، بدنه و...)</h4>
             <div class="table-responsive">
                 <table>
                     <thead>
-                        <tr><th>عبارت فارسی</th><th style="width:35%; text-align:center;">فرکانس تکرار</th></tr>
+                        <tr><th>عبارت فارسی (همراه با شناسه وزن سئو)</th><th style="width:35%; text-align:center;">فرکانس تکرار</th></tr>
                     </thead>
                     <tbody>
                         ${topPhrases.map(([phrase, count]) => `
                             <tr>
-                                <td data-label="عبارت"><strong>${phrase}</strong></td>
+                                <td data-label="عبارت"><div class="phrase-text"><strong>${phrase}</strong></div></td>
                                 <td data-label="تکرار" style="text-align:center;"><span class="count-badge">${count} بار</span></td>
                             </tr>
                         `).join('')}
@@ -636,7 +678,7 @@ function renderPerUrlPhraseTable(perSourcePhrases, container) {
     div.className = 'card';
     div.innerHTML = `
         <h3 style="margin-bottom:0.5rem;">جدول نهایی: تفکیک دو کلمه کلیدی برتر به ازای هر ورودی</h3>
-        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.5rem;">توجه: استخراج داده‌های آماری این ماتریس شامل ترکیب ۱۰۰٪ همزمان تمام عبارات ساختاری (Title, Headings, Anchor Texts, Alts, Body و...) به صورت مجزا برای هر لینک است.</p>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.5rem;">توجه: استخراج داده‌های آماری این ماتریس شامل ترکیب ۱۰۰٪ همزمان تمام عبارات ساختاری نشانه‌گذاری شده (t, h1, md) به صورت مجزا برای هر لینک است.</p>
     `;
     
     let tableHtml = `
