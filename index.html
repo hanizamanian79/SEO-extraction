@@ -349,6 +349,7 @@
         <p class="subtitle">سیستم پایش و متراژ کلمات کلیدی، برچسب‌های هیدینگ و تصاویر به تفکیک دامنه و سورس متنی</p>
     </header>
     
+    <!-- Unified App Control Panel -->
     <div class="card">
         <div class="dashboard-grid">
             <div class="control-group">
@@ -374,6 +375,7 @@
         <div id="status-output" class="status-bar"></div>
     </div>
 
+    <!-- Output Sections -->
     <div id="url-results-section"></div>
     <div id="phrase-results-section"></div>
 </div>
@@ -410,7 +412,6 @@ async function fetchWithProxyFallback(targetUrl, statusDiv) {
     throw new Error("Blocked");
 }
 
-// UNIFIED PIPELINE: Combines both live web scraping AND manual DOM dumps into a single calculation array
 async function triggerUnifiedExtractionWorkflow() {
     const urlInputs = document.querySelectorAll('.url-input');
     const htmlInputs = document.querySelectorAll('.html-input');
@@ -436,7 +437,6 @@ async function triggerUnifiedExtractionWorkflow() {
     startBtn.disabled = true;
     statusDiv.style.display = "block";
 
-    // 1. Process Live URLs
     if (activeUrls.length > 0) {
         for (let url of activeUrls) {
             try {
@@ -448,7 +448,6 @@ async function triggerUnifiedExtractionWorkflow() {
         }
     }
 
-    // 2. Process Manual HTML inputs simultaneously
     if (activeHtmlTexts.length > 0) {
         activeHtmlTexts.forEach((htmlData, index) => {
             statusDiv.innerText = `در حال استخراج داده‌های متنی سورس دستی شماره ${index + 1}...`;
@@ -456,7 +455,6 @@ async function triggerUnifiedExtractionWorkflow() {
         });
     }
 
-    // 3. Aggregate everything together for measurement
     if (allExtractedTexts.length > 0) {
         statusDiv.innerText = "در حال فرآوری و متراژ آماری کل عبارات کلیدی به صورت یکپارچه...";
         const combinedGlobalText = allExtractedTexts.join(" ");
@@ -476,7 +474,7 @@ function processHtmlDocument(label, htmlContent, allExtractedTexts, perSourcePhr
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlContent, "text/html");
 
-    // Gather basic metadata clean metrics
+    // Metadata
     const title = doc.querySelector('title')?.innerText || "موجود نیست";
     const metaDesc = doc.querySelector('meta[name="description"]')?.getAttribute('content') || "موجود نیست";
     
@@ -485,41 +483,24 @@ function processHtmlDocument(label, htmlContent, allExtractedTexts, perSourcePhr
     const h3s = Array.from(doc.querySelectorAll('h3')).map(el => el.innerText.trim());
     const altTexts = Array.from(doc.querySelectorAll('img')).map(img => img.getAttribute('alt')).filter(alt => alt && alt.trim() !== "").map(alt => alt.trim());
 
-    // --- TIME-SAVING TEXT-DENSITY ISOLATION (In-Memory Processing Only) ---
+    // --- مکانیزم امن و قطعی برای استخراج ۱۰۰٪ متن بدنه اصلی صفحه ---
+    // شبیه‌سازی کلون سند برای دستکاری امن در حافظه بدون تخریب خروجی ساختاری
+    const cleanDoc = doc.cloneNode(true);
     
-    // Isolate Core Body text wrappers (falls back to body text if no article tags exist)
-    const bodyNode = doc.querySelector('article, main, .entry-content, #content') || doc.body;
-    let mainBodyText = bodyNode ? bodyNode.innerText : "";
+    // حذف فوری و کامل کدهای برنامه‌نویسی، تگ‌های سربرگ و بخش‌های ناوبری عمومی برای جلوگیری از آلودگی آماری
+    const elementsToRemove = cleanDoc.querySelectorAll('script, style, svg, path, iframe, nav, header, footer, noscript, link, head');
+    elementsToRemove.forEach(el => el.remove());
 
-    // Automatically capture FAQ sections via tags, accordion configurations, or schema structures
-    let faqText = "";
-    const suspectedFaqs = doc.querySelectorAll('details, .faq, [class*="faq" i], [id*="faq" i], [itemtype*="FAQPage"]');
-    suspectedFaqs.forEach(el => {
-        faqText += " " + el.innerText;
-    });
-    // Secondary linguistic scanning backup fallback for FAQs
-    if (!faqText.trim()) {
-        Array.from(doc.querySelectorAll('h2, h3, h4, div')).forEach(el => {
-            const inner = el.innerText;
-            if (inner.includes("سوالات متداول") || inner.includes("پرسش‌های متداول")) {
-                faqText += " " + (el.nextElementSibling ? el.nextElementSibling.innerText : inner);
-            }
-        });
-    }
+    // اکنون متغیر کل متن بدنه، شامل ۱۰۰٪ کلمات بخش‌های محتوایی، سوالات متداول و کامنت‌ها است
+    const pureBodyText = cleanDoc.body ? cleanDoc.body.innerText : "";
 
-    // Automatically collect layout comments elements without hardcoding singular platform classes
-    let commentsText = "";
-    const suspectedComments = doc.querySelectorAll('#comments, .comments, [class*="comment" i], [id*="comment" i], #respond, .comment-body, .comment-content');
-    suspectedComments.forEach(el => {
-        commentsText += " " + el.innerText;
-    });
-
-    // Bundles body, comments, faqs, and images for calculations without rendering them onto UI cards
-    const totalUnifiedText = `${mainBodyText} ${faqText} ${commentsText} ${altTexts.join(" ")}`;
+    // ادغام متن خالص کل بدنه به همراه توصیف تصاویر (Alt) برای پردازش آماری
+    const totalUnifiedText = `${pureBodyText} ${altTexts.join(" ")}`;
+    
     allExtractedTexts.push(totalUnifiedText);
     perSourcePhrases[label] = totalUnifiedText;
 
-    // Render cleanly organized document overview cards (Omits raw text entirely)
+    // رندر کارت‌های ساختاری سئو
     renderUrlTable(label, title, metaDesc, h1s, h2s, h3s, altTexts, container);
 }
 
