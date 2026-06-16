@@ -11,9 +11,9 @@
             --card-border: rgba(255, 255, 255, 0.05);
             --text-main: #f4f4f5;
             --text-muted: #a1a1aa;
-            --primary: #f97316; /* Clean Vibrant Orange */
-            --primary-hover: #ea580c; /* Darker Orange */
-            --accent: #eab308; /* Bright Gold Yellow */
+            --primary: #f97316; 
+            --primary-hover: #ea580c; 
+            --accent: #eab308; 
             --error: #ef4444;
             --table-header: rgba(9, 9, 11, 0.8);
             --table-row-hover: rgba(255, 255, 255, 0.02);
@@ -71,7 +71,7 @@
 
         h4 {
             font-size: 1rem;
-            color: var(--accent); /* Highlight table headers with yellow */
+            color: var(--accent); 
             margin-bottom: 0.75rem;
             font-weight: 700;
         }
@@ -85,7 +85,6 @@
             border: 1px solid var(--card-border);
             box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
             margin-bottom: 2rem;
-            transition: transform 0.2s ease;
         }
 
         .input-group {
@@ -95,7 +94,7 @@
             margin-bottom: 1.5rem;
         }
 
-        input[type="url"] {
+        input[type="url"], textarea {
             width: 100%;
             padding: 0.85rem 1rem;
             background: #09090b;
@@ -103,20 +102,30 @@
             border-radius: 10px;
             color: var(--text-main);
             font-size: 0.95rem;
-            direction: ltr;
+            box-sizing: border-box;
             transition: all 0.2s ease;
         }
 
-        input[type="url"]:focus {
+        input[type="url"] { direction: ltr; }
+        textarea { direction: ltr; font-family: monospace; height: 120px; resize: vertical; }
+
+        input[type="url"]:focus, textarea:focus {
             outline: none;
             border-color: var(--primary);
             box-shadow: 0 0 0 3px var(--input-focus-glow);
         }
 
+        .btn-wrapper {
+            display: flex;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
         button {
-            width: 100%;
+            flex: 1;
+            min-width: 200px;
             background-color: var(--primary);
-            color: #000000; /* Dark text for clean visibility on orange */
+            color: #000000; 
             padding: 0.9rem 1.5rem;
             border: none;
             border-radius: 10px;
@@ -127,10 +136,18 @@
             box-shadow: 0 4px 12px rgba(249, 115, 22, 0.25);
         }
 
+        button.secondary {
+            background-color: #27272a;
+            color: var(--text-main);
+            box-shadow: none;
+            border: 1px solid var(--card-border);
+        }
+
         button:hover { 
             background-color: var(--primary-hover);
             transform: translateY(-1px);
         }
+        button.secondary:hover { background-color: #3f3f46; color: #ffffff; }
         
         button:disabled { 
             background-color: #27272a; 
@@ -162,7 +179,7 @@
             border-collapse: collapse;
             background: #18181b;
             font-size: 0.9rem;
-            min-width: 500px;
+            min-width: 700px; /* Increased slightly to accommodate double phrases cleanly */
         }
 
         th, td {
@@ -170,6 +187,7 @@
             text-align: right;
             border-bottom: 1px solid var(--card-border);
             line-height: 1.5;
+            vertical-align: top;
         }
 
         th {
@@ -177,33 +195,14 @@
             color: var(--text-muted);
             font-weight: 600;
             font-size: 0.85rem;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        tr:hover td {
-            background-color: var(--table-row-hover);
-        }
-
-        ul { 
-            margin: 0; 
-            padding-right: 1.2rem; 
-            padding-left: 0; 
-        }
-
-        li {
-            margin-bottom: 0.25rem;
-        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background-color: var(--table-row-hover); }
+        ul { margin: 0; padding-right: 1.2rem; padding-left: 0; }
+        li { margin-bottom: 0.25rem; }
         
-        a {
-            color: var(--primary);
-            text-decoration: none;
-            transition: color 0.2s;
-        }
+        a { color: var(--primary); text-decoration: none; }
         a:hover { color: var(--accent); text-decoration: underline; }
 
         .flex-tables {
@@ -212,13 +211,27 @@
             gap: 1.5rem;
         }
 
+        .phrase-item {
+            display: block;
+            margin-bottom: 0.4rem;
+            font-weight: 600;
+            color: var(--accent);
+        }
+        .phrase-item:last-child {
+            margin-bottom: 0;
+        }
+        .count-badge {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            background: rgba(255,255,255,0.06);
+            padding: 1px 5px;
+            border-radius: 4px;
+            margin-right: 4px;
+            display: inline-block;
+        }
+
         @media (min-width: 768px) {
-            .flex-tables {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            button {
-                width: auto;
-            }
+            .flex-tables { grid-template-columns: repeat(2, 1fr); }
         }
 
         .error-msg {
@@ -233,16 +246,24 @@
 <div class="container">
     <h1>استخراج‌گر سئو و تحلیل‌گر عبارات فارسی</h1>
     
+    <!-- Unified Input Dashboard -->
     <div class="card">
-        <h3>آدرس ۵ سایت مورد نظر را وارد کنید:</h3>
+        <h3>روش اول: استخراج خودکار از طریق آدرس (مستعد مسدودسازی فایروال)</h3>
         <div class="input-group">
-            <input type="url" class="url-input" placeholder="https://example.com" value="https://www.heyvagroup.com/shownews/109/%DA%AF%D8%B1%D8%A7%DB%8C%D8%B4-%D9%87%D8%A7%DB%8C-%DA%A9%D8%A7%D8%B1%D8%B4%D9%86%D8%A7%D8%B3%DB%8C-%D8%A7%D8%B1%D8%B4%D8%AF-%D8%B1%D8%B4%D8%AA%D9%87-%D8%B1%D9%88%D8%A7%D9%86%D8%B4%D9%86%D8%A7%D8%B3%DB%8C.html">
+            <input type="url" class="url-input" placeholder="https://example.com" value="https://kayhanravan.ir/arshad/clinical-general-psychology/">
             <input type="url" class="url-input" placeholder="https://another-example.com">
             <input type="url" class="url-input" placeholder="">
-            <input type="url" class="url-input" placeholder="">
-            <input type="url" class="url-input" placeholder="">
         </div>
-        <button id="start-btn" onclick="startExtracting()">شروع استخراج اطلاعات</button>
+
+        <h3 style="margin-top: 1.5rem;">روش دوم: مسیر میانبر فایروال (کد منبع سورس HTML سایت مسدود شده را اینجا پیست کنید)</h3>
+        <div class="input-group">
+            <textarea id="raw-html-input" placeholder="کد منبع (Source HTML) کپی شده را اینجا پیست کنید..."></textarea>
+        </div>
+
+        <div class="btn-wrapper">
+            <button id="start-btn" onclick="startExtracting(false)">شروع استخراج از لینک‌ها</button>
+            <button id="bypass-btn" class="secondary" onclick="startExtracting(true)">تحلیل دستی کد HTML پیست شده</button>
+        </div>
         <div id="status-output" class="status"></div>
     </div>
 
@@ -266,8 +287,7 @@ async function fetchWithProxyFallback(targetUrl, statusDiv) {
         
         try {
             const response = await fetch(proxy.url);
-            if (!response.ok) throw new Error("Blocked or failed status");
-
+            if (!response.ok) throw new Error("Blocked");
             if (proxy.type === "json") {
                 const json = await response.json();
                 if (json.contents) return json.contents;
@@ -276,15 +296,17 @@ async function fetchWithProxyFallback(targetUrl, statusDiv) {
                 if (text && text.trim().length > 200) return text;
             }
         } catch (e) {
-            console.warn(`${proxy.name} failed or was blocked. Trying next fallback...`);
+            console.warn(`${proxy.name} bypassed/blocked.`);
         }
     }
-    throw new Error("All proxies were blocked by the website's firewall.");
+    throw new Error("Blocked");
 }
 
-async function startExtracting() {
+async function startExtracting(isManualBypass = false) {
     const inputs = document.querySelectorAll('.url-input');
+    const rawHtmlData = document.getElementById('raw-html-input').value.trim();
     const startBtn = document.getElementById('start-btn');
+    const bypassBtn = document.getElementById('bypass-btn');
     const statusDiv = document.getElementById('status-output');
     const urlResultsSection = document.getElementById('url-results-section');
     const phraseResultsSection = document.getElementById('phrase-results-section');
@@ -292,66 +314,81 @@ async function startExtracting() {
     urlResultsSection.innerHTML = "<h2>جزئیات سئو هر آدرس</h2>";
     phraseResultsSection.innerHTML = "<h2>تحلیل عبارات تکراری فارسی</h2>";
     
-    const urls = Array.from(inputs).map(i => i.value.trim()).filter(url => url !== "");
-    
-    if (urls.length === 0) {
-        alert("لطفاً حداقل یک آدرس معتبر وارد کنید.");
-        return;
-    }
-
-    startBtn.disabled = true;
     let allExtractedTexts = [];
     let perUrlPhrases = {}; 
 
-    for (let url of urls) {
-        try {
-            const htmlText = await fetchWithProxyFallback(url, statusDiv);
-            
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(htmlText, "text/html");
+    startBtn.disabled = true;
+    bypassBtn.disabled = true;
 
-            const title = doc.querySelector('title')?.innerText || "N/A";
-            const metaDesc = doc.querySelector('meta[name="description"]')?.getAttribute('content') || "N/A";
-            
-            const h1s = Array.from(doc.querySelectorAll('h1')).map(el => el.innerText.trim());
-            const h2s = Array.from(doc.querySelectorAll('h2')).map(el => el.innerText.trim());
-            const h3s = Array.from(doc.querySelectorAll('h3')).map(el => el.innerText.trim());
+    if (isManualBypass) {
+        if (!rawHtmlData) {
+            alert("لطفاً ابتدا کدهای اچ‌تی‌ام‌ال را در باکس متنی پیست کنید.");
+            startBtn.disabled = false;
+            bypassBtn.disabled = false;
+            return;
+        }
+        statusDiv.innerText = "در حال تحلیل اطلاعات سورس پیست شده...";
+        processHtmlDocument("اطلاعات پیست شده دستی (Manual Source)", rawHtmlData, allExtractedTexts, perUrlPhrases, urlResultsSection);
+    } else {
+        const urls = Array.from(inputs).map(i => i.value.trim()).filter(url => url !== "");
+        if (urls.length === 0) {
+            alert("لطفاً حداقل یک آدرس معتبر وارد کنید.");
+            startBtn.disabled = false;
+            bypassBtn.disabled = false;
+            return;
+        }
 
-            const bodyText = doc.body ? doc.body.innerText : "";
-            
-            const altTexts = Array.from(doc.querySelectorAll('img'))
-                .map(img => img.getAttribute('alt'))
-                .filter(alt => alt && alt.trim() !== "")
-                .map(alt => alt.trim());
-            
-            const combinedContentText = bodyText + " " + altTexts.join(" ");
-            
-            allExtractedTexts.push(combinedContentText);
-            perUrlPhrases[url] = combinedContentText;
-
-            renderUrlTable(url, title, metaDesc, h1s, h2s, h3s, altTexts, urlResultsSection);
-
-        } catch (error) {
-            console.error(error);
-            renderErrorTable(url, urlResultsSection);
+        for (let url of urls) {
+            try {
+                const htmlText = await fetchWithProxyFallback(url, statusDiv);
+                processHtmlDocument(url, htmlText, allExtractedTexts, perUrlPhrases, urlResultsSection);
+            } catch (error) {
+                renderErrorTable(url, urlResultsSection);
+            }
         }
     }
 
-    statusDiv.innerText = "در حال تحلیل و استخراج کلمات فارسی...";
+    if (allExtractedTexts.length > 0) {
+        statusDiv.innerText = "در حال تحلیل و استخراج کلمات فارسی...";
+        const combinedGlobalText = allExtractedTexts.join(" ");
+        renderGlobalPhraseTables(combinedGlobalText, phraseResultsSection);
+        renderPerUrlPhraseTable(perUrlPhrases, phraseResultsSection);
+        statusDiv.innerText = "عملیات با موفقیت پایان یافت!";
+    } else {
+        statusDiv.innerText = "هیچ داده‌ای برای پردازش یافت نشد.";
+    }
     
-    const combinedGlobalText = allExtractedTexts.join(" ");
-    renderGlobalPhraseTables(combinedGlobalText, phraseResultsSection);
-    renderPerUrlPhraseTable(perUrlPhrases, phraseResultsSection);
-
-    statusDiv.innerText = "عملیات با موفقیت پایان یافت!";
     startBtn.disabled = false;
+    bypassBtn.disabled = false;
+}
+
+function processHtmlDocument(label, htmlContent, allExtractedTexts, perUrlPhrases, container) {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(htmlContent, "text/html");
+
+    const title = doc.querySelector('title')?.innerText || "N/A";
+    const metaDesc = doc.querySelector('meta[name="description"]')?.getAttribute('content') || "N/A";
+    
+    const h1s = Array.from(doc.querySelectorAll('h1')).map(el => el.innerText.trim());
+    const h2s = Array.from(doc.querySelectorAll('h2')).map(el => el.innerText.trim());
+    const h3s = Array.from(doc.querySelectorAll('h3')).map(el => el.innerText.trim());
+
+    const bodyText = doc.body ? doc.body.innerText : "";
+    const altTexts = Array.from(doc.querySelectorAll('img')).map(img => img.getAttribute('alt')).filter(alt => alt && alt.trim() !== "").map(alt => alt.trim());
+    
+    const combinedContentText = bodyText + " " + altTexts.join(" ");
+    allExtractedTexts.push(combinedContentText);
+    perUrlPhrases[label] = combinedContentText;
+
+    renderUrlTable(label, title, metaDesc, h1s, h2s, h3s, altTexts, container);
 }
 
 function renderUrlTable(url, title, desc, h1s, h2s, h3s, altTexts, container) {
     const card = document.createElement('div');
     card.className = 'card';
+    const dynamicLink = url.startsWith('http') ? `<a href="${url}" target="_blank" style="direction:ltr; display:inline-block;">${url}</a>` : url;
     card.innerHTML = `
-        <h3>اطلاعات سایت: <a href="${url}" target="_blank" style="direction:ltr; display:inline-block;">${url}</a></h3>
+        <h3>اطلاعات سایت: ${dynamicLink}</h3>
         <div class="table-responsive">
             <table>
                 <tr><th style="width: 25%">آیتم سئو</th><th>محتوای استخراج شده</th></tr>
@@ -360,7 +397,7 @@ function renderUrlTable(url, title, desc, h1s, h2s, h3s, altTexts, container) {
                 <tr><td><strong>تگ‌های H1</strong></td><td>${h1s.length ? `<ul>${h1s.map(h => `<li>${h}</li>`).join('')}</ul>` : 'یافت نشد'}</td></tr>
                 <tr><td><strong>تگ‌های H2</strong></td><td>${h2s.length ? `<ul>${h2s.map(h => `<li>${h}</li>`).join('')}</ul>` : 'یافت نشد'}</td></tr>
                 <tr><td><strong>تگ‌های H3</strong></td><td>${h3s.length ? `<ul>${h3s.map(h => `<li>${h}</li>`).join('')}</ul>` : 'یافت نشد'}</td></tr>
-                <tr><td><strong>متن‌های جایگزین تصویر (Alt Text)</strong></td><td>${altTexts.length ? `<ul>${altTexts.map(a => `<li>${a}</li>`).join('')}</ul>` : 'هیچ تصویر دارای ویژگی Alt یافت نشد'}</td></tr>
+                <tr><td><strong>متن‌های جایگزین تصویر (Alt Text)</strong></td><td>${altTexts.length ? `<ul>${altTexts.map(a => `<li>${a}</li>`).join('')}</ul>` : 'هیچ ویژگی Alt یافت نشد'}</td></tr>
             </table>
         </div>
     `;
@@ -372,7 +409,7 @@ function renderErrorTable(url, container) {
     card.className = 'card';
     card.innerHTML = `
         <h3>خطا در آدرس: <a href="${url}" target="_blank" style="direction:ltr; display:inline-block;">${url}</a></h3>
-        <p class="error-msg">سیستم‌های امنیتی و فایروال این وب‌سایت مانع از دسترسی ربات‌های واسطه شدند. برای تحلیل این نوع دامنه‌های سخت‌گیر، نیاز به سرور پروکسی اختصاصی دارید.</p>
+        <p class="error-msg">سیستم‌های امنیتی فایروال این وب‌سایت مانع از دسترسی سرورهای واسطه شدند. لطفاً از باکس متنی زیر (روش دوم) برای تحلیل کد منبع این صفحه استفاده کنید.</p>
     `;
     container.appendChild(card);
 }
@@ -380,22 +417,18 @@ function renderErrorTable(url, container) {
 function getTopPhrases(text, phraseLength, topCount = 10) {
     const persianRegex = /[\u0600-\u06FF\uFB8A\u067E\u0686\u06AF\u200C]+/g;
     const foundWords = text.match(persianRegex);
-    
     if (!foundWords) return [];
 
-    const stopWords = ['از', 'به', 'که', 'در', 'با', 'تا', 'را', 'این', 'آن', 'است', 'برای', 'می', 'شور', 'شد', 'شود', 'هم', 'یک', 'یا', 'ها', 'دارد', 'دهند'];
+    const stopWords = ['از', 'به', 'که', 'در', 'با', 'تا', 'را', 'این', 'آن', 'است', 'برای', 'می', 'شور', 'شد', 'شود', 'هم', 'یک', 'یا', 'ها', 'دارد', 'دهند', 'کنند', 'ال', 'های'];
     const words = foundWords.filter(word => !stopWords.includes(word) && word.length > 1);
 
     const phraseCounts = {};
-    
     for (let i = 0; i <= words.length - phraseLength; i++) {
         const phrase = words.slice(i, i + phraseLength).join(" ");
         phraseCounts[phrase] = (phraseCounts[phrase] || 0) + 1;
     }
 
-    return Object.entries(phraseCounts)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, topCount);
+    return Object.entries(phraseCounts).sort((a, b) => b[1] - a[1]).slice(0, topCount);
 }
 
 function renderGlobalPhraseTables(globalText, container) {
@@ -421,37 +454,49 @@ function renderGlobalPhraseTables(globalText, container) {
     container.appendChild(flexContainer);
 }
 
+// Generates the collection of top 2 elements paired with count metadata
+function formatTopTwoPhrases(text, phraseLen) {
+    const topTwo = getTopPhrases(text, phraseLen, 2);
+    if (topTwo.length === 0) return 'یافت نشد';
+    
+    return topTwo.map(([phrase, count]) => `
+        <span class="phrase-item">
+            ${phrase} <span class="count-badge">${count} بار</span>
+        </span>
+    `).join('');
+}
+
 function renderPerUrlPhraseTable(perUrlPhrases, container) {
     const div = document.createElement('div');
     div.className = 'card';
     div.style.marginTop = '2rem';
-    div.innerHTML = `<h3>جدول ۴.۵: برترین عبارات پرتکرار به تفکیک هر آدرس</h3>`;
+    div.innerHTML = `<h3>جدول ۴.۵: ۲ عبارت برتر و پر تکرار به تفکیک منابع ورودی</h3>`;
     
     let tableHtml = `
         <div class="table-responsive">
             <table>
                 <tr>
-                    <th style="direction:ltr; text-align:left; min-width:200px;">URL</th>
-                    <th>برترین عبارت ۲ کلمه‌ای</th>
-                    <th>برترین عبارت ۳ کلمه‌ای</th>
-                    <th>برترین عبارت ۴ کلمه‌ای</th>
-                    <th>برترین عبارت ۵ کلمه‌ای</th>
+                    <th style="direction:ltr; text-align:left; min-width:220px; max-width: 300px; overflow: hidden;">منبع (URL / Manual)</th>
+                    <th>۲ عبارت برتر ۲ کلمه‌ای</th>
+                    <th>۲ عبارت برتر ۳ کلمه‌ای</th>
+                    <th>۲ عبارت برتر ۴ کلمه‌ای</th>
+                    <th>۲ عبارت برتر ۵ کلمه‌ای</th>
                 </tr>
     `;
 
     for (const [url, text] of Object.entries(perUrlPhrases)) {
-        const p2 = getTopPhrases(text, 2, 1)[0]?.[0] || 'یافت نشد';
-        const p3 = getTopPhrases(text, 3, 1)[0]?.[0] || 'یافت نشد';
-        const p4 = getTopPhrases(text, 4, 1)[0]?.[0] || 'یافت نشد';
-        const p5 = getTopPhrases(text, 5, 1)[0]?.[0] || 'یافت نشد';
+        const cellP2 = formatTopTwoPhrases(text, 2);
+        const cellP3 = formatTopTwoPhrases(text, 3);
+        const cellP4 = formatTopTwoPhrases(text, 4);
+        const cellP5 = formatTopTwoPhrases(text, 5);
 
         tableHtml += `
             <tr>
-                <td style="direction:ltr; text-align:left;"><small>${url}</small></td>
-                <td><span style="color:var(--accent); font-weight:600;">${p2}</span></td>
-                <td><span style="color:var(--accent); font-weight:600;">${p3}</span></td>
-                <td><span style="color:var(--accent); font-weight:600;">${p4}</span></td>
-                <td><span style="color:var(--accent); font-weight:600;">${p5}</span></td>
+                <td style="direction:ltr; text-align:left; word-break: break-all;"><small>${url}</small></td>
+                <td>${cellP2}</td>
+                <td>${cellP3}</td>
+                <td>${cellP4}</td>
+                <td>${cellP5}</td>
             </tr>
         `;
     }
