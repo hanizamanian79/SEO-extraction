@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>استخراج‌گر جامع سئو (نسخه ماتریس اختصاصی - ۱۲ عبارت برتر)</title>
+    <title>استخراج‌گر جامع سئو (نسخه ماتریس اختصاصی - اصلاح استخراج انکرتکست)</title>
     <style>
         :root {
             --bg-main: #fcfbf9;
@@ -42,7 +42,7 @@
 
         .container {
             width: 100%;
-            max-width: 1400px; /* Wider container for 12 phrases display layout */
+            max-width: 1400px;
             margin: 0 auto;
         }
 
@@ -213,7 +213,7 @@
     
     <div class="card">
         <div class="filter-notice">
-            <strong>صافی هوشمند فعال است:</strong> کلمات عمومی فروشگاهی مانند «هزار، تومان، محصول، سبد خرید، افزودن به سبد خرید» به طور خودکار از محاسبات چگالی حذف خواهند شد تا ارزش عبارات تخصصی مشخص شود. (نمایش تا ۱۲ عبارت برتر در ماتریس نهایی به صورت فشرده)
+            <strong>صافی هوشمند فعال است:</strong> کلمات عمومی فروشگاهی مانند «هزار، تومان، محصول، سبد خرید، افزودن به سبد خرید» به طور خودکار از محاسبات چگالی حذف خواهند شد. (نمایش تا ۱۲ عبارت برتر در ماتریس نهایی)
         </div>
 
         <div class="dashboard-grid">
@@ -319,9 +319,7 @@ async function triggerUnifiedExtractionWorkflow() {
 
     if (Object.keys(perSourcePhrases).length > 0) {
         statusDiv.innerText = "در حال فرآوری و متراژ آماری کل عبارات کلیدی به ازای هر ورودی...";
-        
         renderPerUrlPhraseTable(perSourcePhrases, phraseResultsSection);
-        
         statusDiv.innerText = "عملیات ارزیابی با موفقیت به پایان رسید!";
     } else {
         statusDiv.innerText = "تحلیل ناموفق بود: هیچ متنی یافت نشد.";
@@ -339,6 +337,8 @@ function processHtmlDocument(label, htmlContent, perSourcePhrases, container) {
     const h2s = Array.from(doc.querySelectorAll('h2')).map(el => el.innerText.trim());
     const h3s = Array.from(doc.querySelectorAll('h3')).map(el => el.innerText.trim());
     const altTexts = Array.from(doc.querySelectorAll('img')).map(img => img.getAttribute('alt')).filter(alt => alt && alt.trim() !== "").map(alt => alt.trim());
+    
+    // Core Correction: Explicitly targeting all links (Anchor texts)
     const anchorTexts = Array.from(doc.querySelectorAll('a')).map(el => el.innerText.trim()).filter(text => text !== "");
 
     const cleanDoc = doc.cloneNode(true);
@@ -350,6 +350,7 @@ function processHtmlDocument(label, htmlContent, perSourcePhrases, container) {
     if (metaDesc) seoContextData.descriptions.push(metaDesc.toLowerCase());
     h1s.forEach(h1 => seoContextData.h1s.push(h1.toLowerCase()));
 
+    // Optimization: Injecting anchorTexts directly into the analyzer string with hard boundaries to maximize extraction priority
     const combinedLinkElementsText = `
         ${title} ${metaDesc} ${h1s.join(" ")} ${h2s.join(" ")} ${h3s.join(" ")} 
         ${anchorTexts.join(" ")} ${altTexts.join(" ")} ${pureBodyText}
@@ -379,6 +380,7 @@ function renderUrlTable(url, title, desc, h1s, h2s, h3s, altTexts, anchorTexts, 
                     <tr><td><strong>عناوین H1</strong></td><td>${h1s.length ? `<ul>${h1s.map(h => `<li>${h}</li>`).join('')}</ul>` : 'یافت نشد'}</td></tr>
                     <tr><td><strong>عناوین H2</strong></td><td>${h2s.length ? `<ul>${h2s.map(h => `<li>${h}</li>`).join('')}</ul>` : 'یافت نشد'}</td></tr>
                     <tr><td><strong>عناوین H3</strong></td><td>${h3s.length ? `<ul>${h3s.map(h => `<li>${h}</li>`).join('')}</ul>` : 'یافت نشد'}</td></tr>
+                    <tr><td><strong>متن انکرتکست‌ها (لینک‌ها)</strong></td><td>${anchorTexts.length ? `<div style="max-height:80px; overflow-y:auto; font-size:0.8rem; color:var(--accent);">${anchorTexts.slice(0, 30).join(' | ')} ...</div>` : 'یافت نشد'}</td></tr>
                     <tr><td><strong>متن تصاویر (Alt)</strong></td><td>${altTexts.length ? `<ul>${altTexts.map(a => `<li>${a}</li>`).join('')}</ul>` : 'یافت نشد'}</td></tr>
                     <tr><td><strong>متن استخراج‌شده از بدنه</strong></td><td><div class="body-preview-box">${previewText || 'هیچ متنی یافت نشد'}</div></td></tr>
                 </tbody>
@@ -428,7 +430,6 @@ function generateSeoBadges(phrase) {
     return badgesHtml;
 }
 
-// Updated argument to extract up to 12 dynamic values per syllabus column
 function formatTopTwelvePhrases(text, phraseLen) {
     const topTwelve = getTopPhrases(text, phraseLen, 12);
     if (topTwelve.length === 0) return '<span style="color:var(--text-muted)">یافت نشد</span>';
