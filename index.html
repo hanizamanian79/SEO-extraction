@@ -361,7 +361,6 @@
         <p class="subtitle">سیستم پایش یکپارچه چگالی کلمات: ترکیب همزمان Title، Meta Description، هیدینگ‌ها، متون بدنه، Anchor Texts و ویژگی Alt</p>
     </header>
     
-    <!-- Unified App Control Panel -->
     <div class="card">
         <div class="dashboard-grid">
             <div class="control-group">
@@ -387,7 +386,6 @@
         <div id="status-output" class="status-bar"></div>
     </div>
 
-    <!-- Output Sections -->
     <div id="url-results-section"></div>
     <div id="phrase-results-section"></div>
 </div>
@@ -463,7 +461,8 @@ async function triggerUnifiedExtractionWorkflow() {
     if (activeHtmlTexts.length > 0) {
         activeHtmlTexts.forEach((htmlData, index) => {
             statusDiv.innerText = `در حال استخراج داده‌های متنی سورس دستی شماره ${index + 1}...`;
-            processHtmlDocument(`سورس دستی وارد شده شماره ${index + 1}`, htmlData, allExtractedTexts, perSourcePhrases, urlResultsSection);
+            const label = `سورس دستی وارد شده شماره ${index + 1}`;
+            processHtmlDocument(label, htmlData, allExtractedTexts, perSourcePhrases, urlResultsSection);
         });
     }
 
@@ -499,19 +498,23 @@ function processHtmlDocument(label, htmlContent, allExtractedTexts, perSourcePhr
 
     // ۳. مکانیزم پاک‌سازی پیشرفته برای استخراج محتوای بدنه اصلی
     const cleanDoc = doc.cloneNode(true);
-    // تگ‌های لینک (a) حذف نمی‌شوند تا Anchor Textها کاملاً درون بدنه برای شمارش نهایی حفظ شوند.
     const elementsToRemove = cleanDoc.querySelectorAll('script, style, svg, path, iframe, nav, header, footer, noscript, link, head, dialog');
     elementsToRemove.forEach(el => el.remove());
 
     const pureBodyText = cleanDoc.body ? cleanDoc.body.innerText.replace(/\s+/g, ' ').trim() : "";
 
-    // ۴. ترکیب همه‌جانبه کلمات (Title + Meta Description + Body Text + Alt Images) بدون حذف هیچ بخشی
-    const totalUnifiedText = `${title} ${metaDesc} ${pureBodyText} ${altTexts.join(" ")}`;
+    // ۴. ترکیب همه‌جانبه تمام عبارات همین لینک (Title + Description + Headings + AnchorTexts + Alts + Body)
+    const combinedLinkElementsText = `
+        ${title} ${metaDesc} 
+        ${h1s.join(" ")} ${h2s.join(" ")} ${h3s.join(" ")} 
+        ${anchorTexts.join(" ")} ${altTexts.join(" ")} 
+        ${pureBodyText}
+    `;
     
-    allExtractedTexts.push(totalUnifiedText);
-    perSourcePhrases[label] = totalUnifiedText;
+    allExtractedTexts.push(combinedLinkElementsText);
+    perSourcePhrases[label] = combinedLinkElementsText; // دیتابیس اختصاصی این لینک برای جدول نهایی
 
-    // رندر کارت‌های تشخیصی
+    // رندر کارت‌های تشخصیصی تفکیکی
     renderUrlTable(label, title, metaDesc, h1s, h2s, h3s, altTexts, anchorTexts, pureBodyText, container);
 }
 
@@ -630,7 +633,10 @@ function formatTopTwoPhrases(text, phraseLen) {
 function renderPerUrlPhraseTable(perSourcePhrases, container) {
     const div = document.createElement('div');
     div.className = 'card';
-    div.innerHTML = `<h3 style="margin-bottom:1rem;">جدول نهایی: تفکیک دو کلمه کلیدی برتر به ازای هر تک ورودی (شامل تایتل، متا و متن)</h3>`;
+    div.innerHTML = `
+        <h3 style="margin-bottom:0.5rem;">جدول نهایی: تفکیک دو کلمه کلیدی برتر به ازای هر ورودی</h3>
+        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.5rem;">توجه: استخراج داده‌های آماری این ماتریس شامل ترکیب ۱۰۰٪ همزمان تمام عبارات ساختاری (Title, Headings, Anchor Texts, Alts, Body و...) به صورت مجزا برای هر لینک است.</p>
+    `;
     
     let tableHtml = `
         <div class="table-responsive">
@@ -638,10 +644,10 @@ function renderPerUrlPhraseTable(perSourcePhrases, container) {
                 <thead>
                     <tr>
                         <th style="direction:ltr; text-align:left; width: 25%">منبع ورودی اطلاعات</th>
-                        <th>عبارات ۲ کلمه‌ای</th>
-                        <th>عبارات ۳ کلمه‌ای</th>
-                        <th>عبارات ۴ کلمه‌ای</th>
-                        <th>عبارات ۵ کلمه‌ای</th>
+                        <th>عبارات ۲ کلمه‌ای (کل اجزا)</th>
+                        <th>عبارات ۳ کلمه‌ای (کل اجزا)</th>
+                        <th>عبارات ۴ کلمه‌ای (کل اجزا)</th>
+                        <th>عبارات ۵ کلمه‌ای (کل اجزا)</th>
                     </tr>
                 </thead>
                 <tbody>
