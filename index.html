@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>استخراج‌گر جامع سئو (نمایش خط به خط انکرتکست‌ها)</title>
+    <title>استخراج‌گر جامع سئو (ماتریس مقایسه ستونی)</title>
     <style>
         :root {
             --bg-main: #fcfbf9;
@@ -42,7 +42,7 @@
 
         .container {
             width: 100%;
-            max-width: 1400px;
+            max-width: 1600px; /* Expanded for mega dynamic layouts */
             margin: 0 auto;
         }
 
@@ -171,10 +171,72 @@
             display: none;
         }
 
-        .table-responsive { width: 100%; margin: 1rem 0; }
-        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        th { background-color: var(--bg-main); color: var(--text-heading); font-weight: 700; padding: 0.85rem 0.5rem; border-bottom: 2px solid var(--border-subtle); text-align: center; }
-        td { padding: 0.6rem 0.5rem; text-align: right; border-bottom: 1px solid var(--border-subtle); vertical-align: top; }
+        /* ---------------------------------------------------- */
+        /* Mega Column Matrix Table (Horizontal Scroll System)   */
+        /* ---------------------------------------------------- */
+        .mega-table-wrapper {
+            width: 100%;
+            overflow-x: auto; /* Forces native horizontal scroll handling */
+            margin: 1rem 0;
+            background-color: var(--bg-surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            box-shadow: 0 4px 20px -2px rgba(28, 25, 23, 0.03);
+        }
+
+        /* Prevent system from squeezing columns. 
+           Allows tables to grow dynamically based on number of extracted entries */
+        .mega-table-wrapper table {
+            width: 100%;
+            min-width: 1000px; 
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            table-layout: fixed; /* Strict column boundaries */
+        }
+
+        .mega-table-wrapper th, .mega-table-wrapper td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-subtle);
+            border-left: 1px solid var(--border-subtle);
+            vertical-align: top;
+            text-align: right;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .mega-table-wrapper th:last-child, .mega-table-wrapper td:last-child {
+            border-left: none;
+        }
+
+        /* Fixing labels for standard features column */
+        .mega-table-wrapper td.feature-label {
+            background-color: var(--bg-main);
+            color: var(--text-heading);
+            font-weight: bold;
+            text-align: center;
+            vertical-align: middle;
+            width: 180px; 
+            position: sticky;
+            right: 0; /* Keeps structural parameters frozen while sliding inputs */
+            box-shadow: 2px 0 5px rgba(0,0,0,0.02);
+            z-index: 2;
+        }
+
+        .mega-table-wrapper th.feature-corner {
+            background-color: var(--bg-neutral-light);
+            width: 180px;
+            position: sticky;
+            right: 0;
+            z-index: 3;
+        }
+
+        .mega-table-wrapper th.source-column-header {
+            background-color: var(--bg-main);
+            color: var(--text-heading);
+            font-weight: 800;
+            text-align: center;
+            font-size: 0.9rem;
+        }
 
         .phrase-item {
             display: flex;
@@ -192,20 +254,19 @@
         .phrase-text { color: var(--text-heading); font-weight: 500; }
         .count-badge { font-size: 0.7rem; font-weight: 700; color: var(--accent); background-color: var(--accent-bg); padding: 0.05rem 0.3rem; border-radius: var(--radius-sm); white-space: nowrap; }
         
-        /* Box optimized for displaying anchor texts row by row cleanly */
         .anchor-preview-box { 
             background-color: var(--bg-main); 
             border: 1px solid var(--border-subtle); 
-            padding: 0.75rem; 
+            padding: 0.6rem; 
             border-radius: var(--radius-md); 
-            max-height: 180px; 
+            max-height: 200px; 
             overflow-y: auto; 
-            font-size: 0.85rem; 
+            font-size: 0.8rem; 
             color: var(--accent);
             line-height: 1.8;
         }
         
-        .body-preview-box { background-color: var(--bg-main); border: 1px dashed var(--border-subtle); padding: 0.75rem; border-radius: var(--radius-md); max-height: 120px; overflow-y: auto; white-space: pre-line; font-size: 0.85rem; }
+        .body-preview-box { background-color: var(--bg-main); border: 1px dashed var(--border-subtle); padding: 0.6rem; border-radius: var(--radius-md); max-height: 150px; overflow-y: auto; white-space: pre-line; font-size: 0.8rem; }
         
         .filter-notice {
             font-size: 0.8rem;
@@ -215,6 +276,8 @@
             border-radius: var(--radius-sm);
             margin-bottom: 1rem;
         }
+
+        ul { margin: 0; padding-right: 1.1rem; }
     </style>
 </head>
 <body>
@@ -227,13 +290,13 @@
     
     <div class="card">
         <div class="filter-notice">
-            <strong>صافی هوشمند فعال است:</strong> کلمات عمومی فروشگاهی مانند «هزار، تومان، محصول، سبد خرید، افزودن به سبد خرید» به طور خودکار از محاسبات چگالی حذف خواهند شد. (نمایش تا ۱۲ عبارت برتر در ماتریس نهایی)
+            <strong>صافی هوشمند فعال است:</strong> کلمات عمومی فروشگاهی مانند «هزار، تومان، محصول، سبد خرید، افزودن به سبد خرید» به طور خودکار از محاسبات چگالی حذف خواهند شد.
         </div>
 
         <div class="dashboard-grid">
             <div class="control-group">
                 <label>بخش اول: استخراج خودکار آدرس‌ها (تا ۵ آدرس همزمان)</label>
-                <input type="url" class="url-input" placeholder="https://example1.com">
+                <input type="url" class="url-input" placeholder="https://example1.com" value="https://kayhanravan.ir/arshad/clinical-general-psychology/">
                 <input type="url" class="url-input" placeholder="https://example2.com">
                 <input type="url" class="url-input" placeholder="https://example3.com">
                 <input type="url" class="url-input" placeholder="https://example4.com">
@@ -254,7 +317,7 @@
         <div id="status-output" class="status-bar"></div>
     </div>
 
-    <div id="url-results-section"></div>
+    <div id="url-matrix-section"></div>
     <div id="phrase-results-section"></div>
 </div>
 
@@ -262,6 +325,7 @@
 const STOP_WORDS = ["هزار", "تومان", "محصول", "سبد", "خرید", "افزودن"];
 
 let seoContextData = { titles: [], h1s: [], descriptions: [] };
+let parsedSourcesMemory = []; // Explicit chronological data storage for rendering custom column-based tables
 
 async function fetchWithProxyFallback(targetUrl, statusDiv) {
     const encodedUrl = encodeURIComponent(targetUrl);
@@ -292,13 +356,14 @@ async function triggerUnifiedExtractionWorkflow() {
     const htmlInputs = document.querySelectorAll('.html-input');
     const startBtn = document.getElementById('start-btn');
     const statusDiv = document.getElementById('status-output');
-    const urlResultsSection = document.getElementById('url-results-section');
+    const urlMatrixSection = document.getElementById('url-matrix-section');
     const phraseResultsSection = document.getElementById('phrase-results-section');
     
-    urlResultsSection.innerHTML = "<h2>جزئیات تشخیصی ساختار تفکیکی هر ورودی</h2>";
+    urlMatrixSection.innerHTML = "";
     phraseResultsSection.innerHTML = ""; 
     
     seoContextData = { titles: [], h1s: [], descriptions: [] };
+    parsedSourcesMemory = []; 
     let perSourcePhrases = {}; 
 
     const activeUrls = Array.from(urlInputs).map(i => i.value.trim()).filter(url => url !== "");
@@ -316,9 +381,9 @@ async function triggerUnifiedExtractionWorkflow() {
         for (let url of activeUrls) {
             try {
                 const htmlText = await fetchWithProxyFallback(url, statusDiv);
-                processHtmlDocument(url, htmlText, perSourcePhrases, urlResultsSection);
+                processHtmlDocument(url, htmlText, perSourcePhrases);
             } catch (error) {
-                renderErrorTable(url, urlResultsSection);
+                parsedSourcesMemory.push({ label: url, error: true });
             }
         }
     }
@@ -327,13 +392,17 @@ async function triggerUnifiedExtractionWorkflow() {
         activeHtmlTexts.forEach((htmlData, index) => {
             statusDiv.innerText = `در حال استخراج داده‌های متنی سورس دستی شماره ${index + 1}...`;
             const label = `سورس دستی وارد شده شماره ${index + 1}`;
-            processHtmlDocument(label, htmlData, perSourcePhrases, urlResultsSection);
+            processHtmlDocument(label, htmlData, perSourcePhrases);
         });
     }
 
-    if (Object.keys(perSourcePhrases).length > 0) {
+    if (parsedSourcesMemory.length > 0) {
+        statusDiv.innerText = "در حال ایجاد جدول مقایسه‌ای ماتریسی خطی...";
+        renderMegaMatrixTable(urlMatrixSection);
+        
         statusDiv.innerText = "در حال فرآوری و متراژ آماری کل عبارات کلیدی به ازای هر ورودی...";
         renderPerUrlPhraseTable(perSourcePhrases, phraseResultsSection);
+        
         statusDiv.innerText = "عملیات ارزیابی با موفقیت به پایان رسید!";
     } else {
         statusDiv.innerText = "تحلیل ناموفق بود: هیچ متنی یافت نشد.";
@@ -341,7 +410,7 @@ async function triggerUnifiedExtractionWorkflow() {
     startBtn.disabled = false;
 }
 
-function processHtmlDocument(label, htmlContent, perSourcePhrases, container) {
+function processHtmlDocument(label, htmlContent, perSourcePhrases) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlContent, "text/html");
 
@@ -351,8 +420,6 @@ function processHtmlDocument(label, htmlContent, perSourcePhrases, container) {
     const h2s = Array.from(doc.querySelectorAll('h2')).map(el => el.innerText.trim());
     const h3s = Array.from(doc.querySelectorAll('h3')).map(el => el.innerText.trim());
     const altTexts = Array.from(doc.querySelectorAll('img')).map(img => img.getAttribute('alt')).filter(alt => alt && alt.trim() !== "").map(alt => alt.trim());
-    
-    // Extracts anchor texts cleanly
     const anchorTexts = Array.from(doc.querySelectorAll('a')).map(el => el.innerText.trim()).filter(text => text !== "");
 
     const cleanDoc = doc.cloneNode(true);
@@ -364,7 +431,6 @@ function processHtmlDocument(label, htmlContent, perSourcePhrases, container) {
     if (metaDesc) seoContextData.descriptions.push(metaDesc.toLowerCase());
     h1s.forEach(h1 => seoContextData.h1s.push(h1.toLowerCase()));
 
-    // Added a newline boundary (\n) between items so phrase analysis respects exact string borders
     const combinedLinkElementsText = `
         ${title} \n ${metaDesc} \n ${h1s.join(" \n ")} \n ${h2s.join(" \n ")} \n ${h3s.join(" \n ")} \n 
         ${anchorTexts.join(" \n ")} \n ${altTexts.join(" \n ")} \n ${pureBodyText}
@@ -372,48 +438,94 @@ function processHtmlDocument(label, htmlContent, perSourcePhrases, container) {
     
     perSourcePhrases[label] = combinedLinkElementsText; 
 
-    renderUrlTable(label, title, metaDesc, h1s, h2s, h3s, altTexts, anchorTexts, pureBodyText, container);
+    // Commit elements directly to object memory bank
+    parsedSourcesMemory.push({
+        label, title, metaDesc, h1s, h2s, h3s, altTexts, anchorTexts, pureBodyText, error: false
+    });
 }
 
-function renderUrlTable(url, title, desc, h1s, h2s, h3s, altTexts, anchorTexts, pureBodyText, container) {
-    const card = document.createElement('div');
-    card.className = 'card';
-    const dynamicLink = url.startsWith('http') ? `<a href="${url}" target="_blank" style="direction:ltr; display:inline-block;">${url}</a>` : url;
+function renderMegaMatrixTable(container) {
+    const sectionTitle = document.createElement('h2');
+    sectionTitle.innerText = "ماتریس ستونی و مقایسه جامع پارامترهای تشخیصی هر ورودی";
+    container.appendChild(sectionTitle);
+
+    const outerWrapper = document.createElement('div');
+    outerWrapper.className = 'mega-table-wrapper';
+
+    // Calculate dynamic column width depending on count size to maintain pristine UX
+    const calculatedColWidth = parsedSourcesMemory.length > 2 ? '380px' : '450px';
+
+    let html = `<table><thead><tr><th class="feature-corner">پارامتر سئو / آدرس</th>`;
     
-    const wordsArray = pureBodyText.split(' ').filter(w => w.length > 0);
-    const wordCount = wordsArray.length;
-    const previewText = wordsArray.slice(0, 150).join(' ') + (wordCount > 150 ? ' ...' : '');
+    // Header Generation Pass
+    parsedSourcesMemory.forEach(source => {
+        const dynamicLink = source.label.startsWith('http') 
+            ? `<a href="${source.label}" target="_blank" style="direction:ltr; display:block; font-size:0.75rem; color:var(--primary); word-break:break-all;">${source.label}</a>` 
+            : `<span>${source.label}</span>`;
+        html += `<th class="source-column-header" style="width: ${calculatedColWidth};">${dynamicLink}</th>`;
+    });
+    html += `</tr></thead><tbody>`;
 
-    // Generates the anchor texts per line inside a dedicated container element
-    const anchorsPerLineHtml = anchorTexts.length 
-        ? `<div class="anchor-preview-box">${anchorTexts.map(text => `<div>🔗 ${text}</div>`).join('')}</div>`
-        : 'یافت نشد';
+    // Row definitions matrix mapping configuration loop 
+    const fields = [
+        { id: 'title', label: 'Title (عنوان صفحه)' },
+        { id: 'metaDesc', label: 'Meta Description' },
+        { id: 'h1s', label: 'عناوین H1' },
+        { id: 'h2s', label: 'عناوین H2' },
+        { id: 'h3s', label: 'عناوین H3' },
+        { id: 'anchors', label: 'متن انکرتکست‌ها (خط به خط)' },
+        { id: 'alts', label: 'متن تصاویر (Alt)' },
+        { id: 'body', label: 'متن استخراج‌شده از بدنه' }
+    ];
 
-    card.innerHTML = `
-        <h3 style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem; font-size:1rem; word-break: break-all;">منبع ورودی: ${dynamicLink}</h3>
-        <div class="table-responsive">
-            <table>
-                <tbody>
-                    <tr><td style="width:25%"><strong>Title (عنوان صفحه)</strong></td><td style="color:var(--text-heading); font-weight:600;">${title || 'موجود نیست'}</td></tr>
-                    <tr><td><strong>Meta Description</strong></td><td>${desc || 'موجود نیست'}</td></tr>
-                    <tr><td><strong>عناوین H1</strong></td><td>${h1s.length ? `<ul>${h1s.map(h => `<li>${h}</li>`).join('')}</ul>` : 'یافت نشد'}</td></tr>
-                    <tr><td><strong>عناوین H2</strong></td><td>${h2s.length ? `<ul>${h2s.map(h => `<li>${h}</li>`).join('')}</ul>` : 'یافت نشد'}</td></tr>
-                    <tr><td><strong>عناوین H3</strong></td><td>${h3s.length ? `<ul>${h3s.map(h => `<li>${h}</li>`).join('')}</ul>` : 'یافت نشد'}</td></tr>
-                    <tr><td><strong>متن انکرتکست‌ها (لینک‌ها - خط به خط)</strong></td><td>${anchorsPerLineHtml}</td></tr>
-                    <tr><td><strong>متن تصاویر (Alt)</strong></td><td>${altTexts.length ? `<ul>${altTexts.map(a => `<li>${a}</li>`).join('')}</ul>` : 'یافت نشد'}</td></tr>
-                    <tr><td><strong>متن استخراج‌شده از بدنه</strong></td><td><div class="body-preview-box">${previewText || 'هیچ متنی یافت نشد'}</div></td></tr>
-                </tbody>
-            </table>
-        </div>
-    `;
-    container.appendChild(card);
-}
+    fields.forEach(field => {
+        html += `<tr><td class="feature-label">${field.label}</td>`;
+        
+        parsedSourcesMemory.forEach(source => {
+            if (source.error) {
+                html += `<td style="color:var(--error); text-align:center; background-color:rgba(220,38,38,0.02)">خطا در دسترسی به این منبع</td>`;
+                return;
+            }
 
-function renderErrorTable(url, container) {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `<h3 style="font-size:1rem; color:var(--error);">عدم دسترسی به آدرس: ${url}</h3>`;
-    container.appendChild(card);
+            html += `<td>`;
+            switch(field.id) {
+                case 'title':
+                    html += `<span style="color:var(--text-heading); font-weight:600;">${source.title || 'موجود نیست'}</span>`;
+                    break;
+                case 'metaDesc':
+                    html += `<span>${source.metaDesc || 'موجود نیست'}</span>`;
+                    break;
+                case 'h1s':
+                    html += source.h1s.length ? `<ul>${source.h1s.map(h => `<li>${h}</li>`).join('')}</ul>` : 'یافت نشد';
+                    break;
+                case 'h2s':
+                    html += source.h2s.length ? `<ul>${source.h2s.map(h => `<li>${h}</li>`).join('')}</ul>` : 'یافت نشد';
+                    break;
+                case 'h3s':
+                    html += source.h3s.length ? `<ul>${source.h3s.map(h => `<li>${h}</li>`).join('')}</ul>` : 'یافت نشد';
+                    break;
+                case 'anchors':
+                    html += source.anchorTexts.length 
+                        ? `<div class="anchor-preview-box">${source.anchorTexts.map(text => `<div>🔗 ${text}</div>`).join('')}</div>` 
+                        : 'یافت نشد';
+                    break;
+                case 'alts':
+                    html += source.altTexts.length ? `<ul>${source.altTexts.map(a => `<li>${a}</li>`).join('')}</ul>` : 'یافت نشد';
+                    break;
+                case 'body':
+                    const wordsArray = source.pureBodyText.split(' ').filter(w => w.length > 0);
+                    const previewText = wordsArray.slice(0, 140).join(' ') + (wordsArray.length > 140 ? ' ...' : '');
+                    html += `<div class="body-preview-box">${previewText || 'هیچ متنی یافت نشد'}</div>`;
+                    break;
+            }
+            html += `</td>`;
+        });
+        html += `</tr>`;
+    });
+
+    html += `</tbody></table>`;
+    outerWrapper.innerHTML = html;
+    container.appendChild(outerWrapper);
 }
 
 function getTopPhrases(text, phraseLength, topCount = 10) {
