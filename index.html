@@ -135,11 +135,11 @@ async function startExtracting() {
     const urlResultsSection = document.getElementById('url-results-section');
     const phraseResultsSection = document.getElementById('phrase-results-section');
     
-    // Reset views
+    // Reset views on click
     urlResultsSection.innerHTML = "<h2>Individual URL Details</h2>";
-    phraseResultsSection.innerHTML = "<h2>Repeated Phrase Analysis (N-Grams)</h2>";
+    phraseResultsSection.innerHTML = "<h2>Repeated Phrase Analysis (Cleaned N-Grams)</h2>";
     
-    // Filter out empty inputs
+    // Gather and clean URL inputs
     const urls = Array.from(inputs).map(i => i.value.trim()).filter(url => url !== "");
     
     if (urls.length === 0) {
@@ -149,23 +149,23 @@ async function startExtracting() {
 
     startBtn.disabled = true;
     let allExtractedTexts = [];
-    let perUrlPhrases = {}; // For table 4.5
+    let perUrlPhrases = {}; 
 
-    // Using a free CORS proxy to fetch data directly in frontend JS
+    // Free CORS proxy to safely fetch text on frontend static servers (like GitHub Pages)
     const proxyUrl = "https://corsproxy.io/?";
 
     for (let url of urls) {
         statusDiv.innerText = `Fetching and extracting: ${url}...`;
         try {
             const response = await fetch(proxyUrl + encodeURIComponent(url));
-            if (!response.ok) throw new Error("Failed to fetch");
+            if (!response.ok) throw new Error("Failed to fetch page data.");
             const htmlText = await response.text();
             
-            // Parse HTML string into a DOM structure
+            // Map string content into a virtual browser document object
             const parser = new DOMParser();
             const doc = parser.parseFromString(htmlText, "text/html");
 
-            // 2. Extract SEO elements
+            // Step 2: Grab the target SEO Elements
             const title = doc.querySelector('title')?.innerText || "N/A";
             const metaDesc = doc.querySelector('meta[name="description"]')?.getAttribute('content') || "N/A";
             
@@ -173,12 +173,12 @@ async function startExtracting() {
             const h2s = Array.from(doc.querySelectorAll('h2')).map(el => el.innerText.trim());
             const h3s = Array.from(doc.querySelectorAll('h3')).map(el => el.innerText.trim());
 
-            // Compile visible text for phrase analysis
+            // Collect all legible screen text for processing word-patterns
             const bodyText = doc.body ? doc.body.innerText : "";
             allExtractedTexts.push(bodyText);
             perUrlPhrases[url] = bodyText;
 
-            // 3. Render Table for individual URL
+            // Step 3: Render individual data overview table
             renderUrlTable(url, title, metaDesc, h1s, h2s, h3s, urlResultsSection);
 
         } catch (error) {
@@ -187,18 +187,18 @@ async function startExtracting() {
         }
     }
 
-    statusDiv.innerText = "Processing phrases and generating tables...";
+    statusDiv.innerText = "Filtering noise and assembling tables...";
     
-    // Combine all texts for global tables (4.1 to 4.4)
+    // Combine all extracted text blocks for the general overview tables
     const combinedGlobalText = allExtractedTexts.join(" ");
     
-    // Generate Table 4.1 to 4.4 (Global across all links)
+    // Step 4.1 to 4.4: Generate Global Phrase Overviews
     renderGlobalPhraseTables(combinedGlobalText, phraseResultsSection);
     
-    // Generate Table 4.5 (Top phrases per specific link)
+    // Step 4.5: Generate Individual URL Cross-comparison grid
     renderPerUrlPhraseTable(perUrlPhrases, phraseResultsSection);
 
-    statusDiv.innerText = "Done!";
+    statusDiv.innerText = "Analysis Complete!";
     startBtn.disabled = false;
 }
 
@@ -222,25 +222,49 @@ function renderUrlTable(url, title, desc, h1s, h2s, h3s, container) {
 function renderErrorTable(url, container) {
     const card = document.createElement('div');
     card.className = 'card';
-    card.innerHTML = `<h3>Data for: ${url}</h3><p style="color:red;">Error: Could not scrape this URL. It might be blocking automated requests or proxy traffic.</p>`;
+    card.innerHTML = `<h3>Data for: ${url}</h3><p style="color:red;">Error: Could not securely connect to this domain. The host might be preventing third-party scraping via CORS.</p>`;
     container.appendChild(card);
 }
 
-// Helper to extract phrases of length N (N-grams)
+// Helper to extract phrase patterns (N-grams) and strip technical noise
 function getTopPhrases(text, phraseLength, topCount = 5) {
-    // Clean text: remove punctuation, lowercase it, split into words
+    // Noise Filter: Blacklisted phrases or keywords to omit from appearing in tables
+    const blacklist = [
+        'cdn 3gaam com',
+        'https cdn 3gaam',
+        'null classname',
+        'static chunks',
+        'u0026nbsp',
+        'u003c td',
+        'td style',
+        'classname',
+        'chunks',
+        'static',
+        'width',
+        'height',
+        'style'
+    ];
+
+    // Format text: lowercase, remove syntax markers, split down to individual components
     const words = text.toLowerCase()
                       .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"'\n]/g, " ")
                       .split(/\s+/)
-                      .filter(word => word.length > 2); // filter out tiny filler words like 'a', 'to', 'in'
+                      .filter(word => word.length > 2); // Drops short fillers ('to', 'the', 'is')
 
     const phraseCounts = {};
     
     for (let i = 0; i <= words.length - phraseLength; i++) {
         const phrase = words.slice(i, i + phraseLength).join(" ");
-        phraseCounts[phrase] = (phraseCounts[phrase] || 0) + 1;
+        
+        // Scan phrase against entire blacklist array
+        const shouldOmit = blacklist.some(junkWord => phrase.includes(junkWord));
+        
+        if (!shouldOmit) {
+            phraseCounts[phrase] = (phraseCounts[phrase] || 0) + 1;
+        }
     }
 
+    // Sort descending by occurrences and return slice up to desired size limit
     return Object.entries(phraseCounts)
         .sort((a, b) => b[1] - a[1])
         .slice(0, topCount);
@@ -250,7 +274,7 @@ function renderGlobalPhraseTables(globalText, container) {
     const flexContainer = document.createElement('div');
     flexContainer.className = 'flex-tables';
     
-    // Loop to build tables 4.1 (2-words) through 4.4 (5-words)
+    // Generates Tables 4.1 through 4.4 sequentially
     for (let len = 2; len <= 5; len++) {
         const topPhrases = getTopPhrases(globalText, len);
         const div = document.createElement('div');
