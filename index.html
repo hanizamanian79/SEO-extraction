@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DIY SEO Extractor & Phrase Analyzer</title>
+    <title>استخراج‌گر سئو و تحلیل‌گر عبارات فارسی</title>
     <style>
         :root {
             --primary: #4f46e5;
@@ -20,6 +20,7 @@
             color: var(--text);
             margin: 0;
             padding: 2rem;
+            direction: rtl; /* Set layout to Right-to-Left for Persian */
         }
 
         .container {
@@ -51,6 +52,7 @@
             border-radius: 6px;
             box-sizing: border-box;
             font-size: 1rem;
+            direction: ltr; /* Keeps URL typing Left-to-Right */
         }
 
         button {
@@ -86,7 +88,7 @@
 
         th, td {
             padding: 0.75rem 1rem;
-            text-align: left;
+            text-align: right; /* Aligned right for Persian */
             border-bottom: 1px solid var(--border);
         }
 
@@ -95,7 +97,7 @@
             font-weight: 600;
         }
 
-        ul { margin: 0; padding-left: 1.25rem; }
+        ul { margin: 0; padding-right: 1.25rem; padding-left: 0; }
         
         .flex-tables {
             display: grid;
@@ -107,18 +109,18 @@
 <body>
 
 <div class="container">
-    <h1>SEO Data Extractor & Phrase Analyzer</h1>
+    <h1>SEO Data Extractor & Phrase Analyzer (Persian Focused)</h1>
     
     <div class="card">
-        <h3>Enter up to 5 URLs to analyze:</h3>
+        <h3>آدرس ۵ سایت مورد نظر را وارد کنید:</h3>
         <div class="input-group">
-            <input type="url" class="url-input" placeholder="https://example.com" value="https://example.com">
-            <input type="url" class="url-input" placeholder="https://wikipedia.org">
+            <input type="url" class="url-input" placeholder="https://example.com" value="">
+            <input type="url" class="url-input" placeholder="https://another-example.com">
             <input type="url" class="url-input" placeholder="">
             <input type="url" class="url-input" placeholder="">
             <input type="url" class="url-input" placeholder="">
         </div>
-        <button id="start-btn" onclick="startExtracting()">Start Extracting</button>
+        <button id="start-btn" onclick="startExtracting()">شروع استخراج اطلاعات</button>
         <div id="status-output" class="status"></div>
     </div>
 
@@ -136,14 +138,13 @@ async function startExtracting() {
     const phraseResultsSection = document.getElementById('phrase-results-section');
     
     // Reset views on click
-    urlResultsSection.innerHTML = "<h2>Individual URL Details</h2>";
-    phraseResultsSection.innerHTML = "<h2>Repeated Phrase Analysis (Cleaned N-Grams)</h2>";
+    urlResultsSection.innerHTML = "<h2>جزئیات سئو هر آدرس (Individual URL Details)</h2>";
+    phraseResultsSection.innerHTML = "<h2>تحلیل عبارات تکراری فارسی (Cleaned Persian Phrases)</h2>";
     
-    // Gather and clean URL inputs
     const urls = Array.from(inputs).map(i => i.value.trim()).filter(url => url !== "");
     
     if (urls.length === 0) {
-        alert("Please enter at least one valid URL.");
+        alert("لطفاً حداقل یک آدرس معتبر وارد کنید.");
         return;
     }
 
@@ -151,17 +152,16 @@ async function startExtracting() {
     let allExtractedTexts = [];
     let perUrlPhrases = {}; 
 
-    // Free CORS proxy to safely fetch text on frontend static servers (like GitHub Pages)
+    // Free CORS proxy to handle security blocks
     const proxyUrl = "https://corsproxy.io/?";
 
     for (let url of urls) {
-        statusDiv.innerText = `Fetching and extracting: ${url}...`;
+        statusDiv.innerText = `در حال دریافت اطلاعات از: ${url}...`;
         try {
             const response = await fetch(proxyUrl + encodeURIComponent(url));
-            if (!response.ok) throw new Error("Failed to fetch page data.");
+            if (!response.ok) throw new Error("Failed to fetch");
             const htmlText = await response.text();
             
-            // Map string content into a virtual browser document object
             const parser = new DOMParser();
             const doc = parser.parseFromString(htmlText, "text/html");
 
@@ -173,12 +173,11 @@ async function startExtracting() {
             const h2s = Array.from(doc.querySelectorAll('h2')).map(el => el.innerText.trim());
             const h3s = Array.from(doc.querySelectorAll('h3')).map(el => el.innerText.trim());
 
-            // Collect all legible screen text for processing word-patterns
             const bodyText = doc.body ? doc.body.innerText : "";
             allExtractedTexts.push(bodyText);
             perUrlPhrases[url] = bodyText;
 
-            // Step 3: Render individual data overview table
+            // Step 3: Render individual data table
             renderUrlTable(url, title, metaDesc, h1s, h2s, h3s, urlResultsSection);
 
         } catch (error) {
@@ -187,18 +186,17 @@ async function startExtracting() {
         }
     }
 
-    statusDiv.innerText = "Filtering noise and assembling tables...";
+    statusDiv.innerText = "در حال فیلتر کردن کدهای مخفی و استخراج عبارات فارسی...";
     
-    // Combine all extracted text blocks for the general overview tables
     const combinedGlobalText = allExtractedTexts.join(" ");
     
     // Step 4.1 to 4.4: Generate Global Phrase Overviews
     renderGlobalPhraseTables(combinedGlobalText, phraseResultsSection);
     
-    // Step 4.5: Generate Individual URL Cross-comparison grid
+    // Step 4.5: Generate Cross-comparison table per link
     renderPerUrlPhraseTable(perUrlPhrases, phraseResultsSection);
 
-    statusDiv.innerText = "Analysis Complete!";
+    statusDiv.innerText = "عملیات با موفقیت پایان یافت!";
     startBtn.disabled = false;
 }
 
@@ -206,14 +204,14 @@ function renderUrlTable(url, title, desc, h1s, h2s, h3s, container) {
     const card = document.createElement('div');
     card.className = 'card';
     card.innerHTML = `
-        <h3>Data for: <a href="${url}" target="_blank">${url}</a></h3>
+        <h3>اطلاعات سایت: <a href="${url}" target="_blank" style="direction:ltr; display:inline-block;">${url}</a></h3>
         <table>
-            <tr><th style="width: 20%">Element</th><th>Extracted Content</th></tr>
-            <tr><td><strong>Title</strong></td><td>${title}</td></tr>
-            <tr><td><strong>Meta Description</strong></td><td>${desc}</td></tr>
-            <tr><td><strong>H1 Headings</strong></td><td>${h1s.length ? `<ul>${h1s.map(h => `<li>${h}</li>`).join('')}</ul>` : 'None'}</td></tr>
-            <tr><td><strong>H2 Headings</strong></td><td>${h2s.length ? `<ul>${h2s.map(h => `<li>${h}</li>`).join('')}</ul>` : 'None'}</td></tr>
-            <tr><td><strong>H3 Headings</strong></td><td>${h3s.length ? `<ul>${h3s.map(h => `<li>${h}</li>`).join('')}</ul>` : 'None'}</td></tr>
+            <tr><th style="width: 25%">آیتم سئو</th><th>محتوای استخراج شده</th></tr>
+            <tr><td><strong>Title (عنوان صفحه)</strong></td><td>${title}</td></tr>
+            <tr><td><strong>Meta Description (توضیحات)</strong></td><td>${desc}</td></tr>
+            <tr><td><strong>تگ‌های H1</strong></td><td>${h1s.length ? `<ul>${h1s.map(h => `<li>${h}</li>`).join('')}</ul>` : 'یافت نشد'}</td></tr>
+            <tr><td><strong>تگ‌های H2</strong></td><td>${h2s.length ? `<ul>${h2s.map(h => `<li>${h}</li>`).join('')}</ul>` : 'یافت نشد'}</td></tr>
+            <tr><td><strong>تگ‌های H3</strong></td><td>${h3s.length ? `<ul>${h3s.map(h => `<li>${h}</li>`).join('')}</ul>` : 'یافت نشد'}</td></tr>
         </table>
     `;
     container.appendChild(card);
@@ -222,49 +220,31 @@ function renderUrlTable(url, title, desc, h1s, h2s, h3s, container) {
 function renderErrorTable(url, container) {
     const card = document.createElement('div');
     card.className = 'card';
-    card.innerHTML = `<h3>Data for: ${url}</h3><p style="color:red;">Error: Could not securely connect to this domain. The host might be preventing third-party scraping via CORS.</p>`;
+    card.innerHTML = `<h3>خطا در آدرس: ${url}</h3><p style="color:red;">برقراری ارتباط با این سایت امکان‌پذیر نبود. احتمالاً سایت دسترسی ربات‌ها را مسدود کرده است.</p>`;
     container.appendChild(card);
 }
 
-// Helper to extract phrase patterns (N-grams) and strip technical noise
+// SUPER FILTER: Keeps ONLY Persian words, completely dropping English code syntax
 function getTopPhrases(text, phraseLength, topCount = 5) {
-    // Noise Filter: Blacklisted phrases or keywords to omit from appearing in tables
-    const blacklist = [
-        'cdn 3gaam com',
-        'https cdn 3gaam',
-        'null classname',
-        'static chunks',
-        'u0026nbsp',
-        'u003c td',
-        'td style',
-        'classname',
-        'chunks',
-        'static',
-        'width',
-        'height',
-        'style'
-    ];
+    // Regular expression: Matches only Persian/Arabic characters and ZWNJ (نیم‌فاصله)
+    const persianRegex = /[\u0600-\u06FF\uFB8A\u067E\u0686\u06AF\u200C]+/g;
+    
+    // Extract all valid Persian words from the text body
+    const foundWords = text.match(persianRegex);
+    
+    if (!foundWords) return [];
 
-    // Format text: lowercase, remove syntax markers, split down to individual components
-    const words = text.toLowerCase()
-                      .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"'\n]/g, " ")
-                      .split(/\s+/)
-                      .filter(word => word.length > 2); // Drops short fillers ('to', 'the', 'is')
+    // Optional: Add common Persian stop words here if you want to skip them (e.g., 'از', 'به', 'که')
+    const stopWords = ['از', 'به', 'که', 'در', 'با', 'تا', 'را', 'این', 'آن', 'است', 'برای'];
+    const words = foundWords.filter(word => !stopWords.includes(word) && word.length > 1);
 
     const phraseCounts = {};
     
     for (let i = 0; i <= words.length - phraseLength; i++) {
         const phrase = words.slice(i, i + phraseLength).join(" ");
-        
-        // Scan phrase against entire blacklist array
-        const shouldOmit = blacklist.some(junkWord => phrase.includes(junkWord));
-        
-        if (!shouldOmit) {
-            phraseCounts[phrase] = (phraseCounts[phrase] || 0) + 1;
-        }
+        phraseCounts[phrase] = (phraseCounts[phrase] || 0) + 1;
     }
 
-    // Sort descending by occurrences and return slice up to desired size limit
     return Object.entries(phraseCounts)
         .sort((a, b) => b[1] - a[1])
         .slice(0, topCount);
@@ -274,14 +254,13 @@ function renderGlobalPhraseTables(globalText, container) {
     const flexContainer = document.createElement('div');
     flexContainer.className = 'flex-tables';
     
-    // Generates Tables 4.1 through 4.4 sequentially
     for (let len = 2; len <= 5; len++) {
         const topPhrases = getTopPhrases(globalText, len);
         const div = document.createElement('div');
         div.innerHTML = `
-            <h4>Top ${len}-Word Phrases (Global)</h4>
+            <h4>برترین عبارات ${len} کلمه‌ای (کل سایت‌ها)</h4>
             <table>
-                <tr><th>Phrase</th><th>Count</th></tr>
+                <tr><th>عبارت فارسی</th><th>تعداد تکرار</th></tr>
                 ${topPhrases.map(([phrase, count]) => `<tr><td>${phrase}</td><td>${count}</td></tr>`).join('')}
             </table>
         `;
@@ -294,32 +273,32 @@ function renderPerUrlPhraseTable(perUrlPhrases, container) {
     const div = document.createElement('div');
     div.className = 'card';
     div.style.marginTop = '2rem';
-    div.innerHTML = `<h3>Table 4.5: Top Repeated Phrases Per Unique Link</h3>`;
+    div.innerHTML = `<h3>جدول ۴.۵: برترین عبارات پرتکرار به تفکیک هر آدرس</h3>`;
     
     let tableHtml = `
         <table>
             <tr>
-                <th>URL</th>
-                <th>Top 2-Word Phrase</th>
-                <th>Top 3-Word Phrase</th>
-                <th>Top 4-Word Phrase</th>
-                <th>Top 5-Word Phrase</th>
+                <th style="direction:ltr; text-align:left;">URL</th>
+                <th>برترین عبارت ۲ کلمه‌ای</th>
+                <th>برترین عبارت ۳ کلمه‌ای</th>
+                <th>برترین عبارت ۴ کلمه‌ای</th>
+                <th>برترین عبارت ۵ کلمه‌ای</th>
             </tr>
     `;
 
     for (const [url, text] of Object.entries(perUrlPhrases)) {
-        const p2 = getTopPhrases(text, 2, 1)[0]?.[0] || 'N/A';
-        const p3 = getTopPhrases(text, 3, 1)[0]?.[0] || 'N/A';
-        const p4 = getTopPhrases(text, 4, 1)[0]?.[0] || 'N/A';
-        const p5 = getTopPhrases(text, 5, 1)[0]?.[0] || 'N/A';
+        const p2 = getTopPhrases(text, 2, 1)[0]?.[0] || 'یافت نشد';
+        const p3 = getTopPhrases(text, 3, 1)[0]?.[0] || 'یافت نشد';
+        const p4 = getTopPhrases(text, 4, 1)[0]?.[0] || 'یافت نشد';
+        const p5 = getTopPhrases(text, 5, 1)[0]?.[0] || 'یافت نشد';
 
         tableHtml += `
             <tr>
-                <td><small>${url}</small></td>
-                <td>"${p2}"</td>
-                <td>"${p3}"</td>
-                <td>"${p4}"</td>
-                <td>"${p5}"</td>
+                <td style="direction:ltr; text-align:left;"><small>${url}</small></td>
+                <td><strong>${p2}</strong></td>
+                <td><strong>${p3}</strong></td>
+                <td><strong>${p4}</strong></td>
+                <td><strong>${p5}</strong></td>
             </tr>
         `;
     }
