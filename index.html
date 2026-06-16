@@ -358,7 +358,7 @@
 <div class="container">
     <header>
         <h1>استخراج‌گر سئو و تحلیل‌گر عبارات فارسی</h1>
-        <p class="subtitle">سیستم پایش و متراژ کلمات کلیدی، برچسب‌های هیدینگ و تصاویر به تفکیک دامنه و سورس متنی</p>
+        <p class="subtitle">سیستم پایش و متراژ کلمات کلیدی، برچسب‌های هیدینگ، تصاویر و متن‌های لنگر تفکیکی</p>
     </header>
     
     <div class="card">
@@ -493,33 +493,42 @@ function processHtmlDocument(label, htmlContent, allExtractedTexts, perSourcePhr
     const h3s = Array.from(doc.querySelectorAll('h3')).map(el => el.innerText.trim());
     const altTexts = Array.from(doc.querySelectorAll('img')).map(img => img.getAttribute('alt')).filter(alt => alt && alt.trim() !== "").map(alt => alt.trim());
 
-    // مکانیزم جامع و ۱۰۰٪ پاک‌سازی سند برای استخراج کلمات بدنه
+    // --- فرآیند اختصاصی استخراج متن‌های لنگر (Anchor Texts) ---
+    // جمع‌آوری تمامی محتواهای متنی معتبر قرار گرفته بین تگ‌های <a> و </a>
+    const anchorTexts = Array.from(doc.querySelectorAll('a'))
+        .map(el => el.innerText.trim())
+        .filter(text => text !== "");
+
+    // مکانیزم جامع و ۱۰۰٪ پاک‌سازی سند برای استخراج کلمات بدنه اصلی
     const cleanDoc = doc.cloneNode(true);
+    // ما تگ a را حذف نمی‌کنیم تا متن آن (Anchor text) در بدنه اصلی باقی مانده و حتماً شمارش شود.
     const elementsToRemove = cleanDoc.querySelectorAll('script, style, svg, path, iframe, nav, header, footer, noscript, link, head, dialog');
     elementsToRemove.forEach(el => el.remove());
 
     // متغیر نهایی متن تمیز شده کل بدنه اصلی
     const pureBodyText = cleanDoc.body ? cleanDoc.body.innerText.replace(/\s+/g, ' ').trim() : "";
 
-    // ادغام برای کلمات کلیدی
+    // ادغام نهایی: بدنه اصلی (شامل انکور تکست‌ها) + توصیف تصاویر (Alt) برای پردازش عبارات فراگیر
     const totalUnifiedText = `${pureBodyText} ${altTexts.join(" ")}`;
     
     allExtractedTexts.push(totalUnifiedText);
     perSourcePhrases[label] = totalUnifiedText;
 
-    // رندر کارت سئو به همراه ردیف نمایش‌دهنده متن بدنه اصلی
-    renderUrlTable(label, title, metaDesc, h1s, h2s, h3s, altTexts, pureBodyText, container);
+    // رندر کارت تحلیل به همراه افزودن بخش ردیف اختصاصی Anchor Texts و شبیه‌ساز کلمات
+    renderUrlTable(label, title, metaDesc, h1s, h2s, h3s, altTexts, anchorTexts, pureBodyText, container);
 }
 
-function renderUrlTable(url, title, desc, h1s, h2s, h3s, altTexts, pureBodyText, container) {
+function renderUrlTable(url, title, desc, h1s, h2s, h3s, altTexts, anchorTexts, pureBodyText, container) {
     const card = document.createElement('div');
     card.className = 'card';
     const dynamicLink = url.startsWith('http') ? `<a href="${url}" target="_blank" style="direction:ltr; display:inline-block;">${url}</a>` : url;
     
-    // آماده‌سازی پیش‌نمایش کوچکی از کلمات بدنه استخراج شده برای ردیف جدید
     const wordsArray = pureBodyText.split(' ').filter(w => w.length > 0);
     const wordCount = wordsArray.length;
     const previewText = wordsArray.slice(0, 150).join(' ') + (wordCount > 150 ? ' ...' : '');
+
+    // فیلتر کردن لنگرهای تکراری صرفاً جهت خوانایی بهتر لیست ردیف مشخصات
+    const uniqueAnchors = [...new Set(anchorTexts)];
 
     card.innerHTML = `
         <h3 style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem; font-size:1rem; word-break: break-all;">منبع ورودی: ${dynamicLink}</h3>
@@ -534,10 +543,18 @@ function renderUrlTable(url, title, desc, h1s, h2s, h3s, altTexts, pureBodyText,
                     <tr><td data-label="شاخص سئو"><strong>متن تصاویر (Alt)</strong></td><td data-label="محتوا">${altTexts.length ? `<ul>${altTexts.map(a => `<li>${a}</li>`).join('')}</ul>` : '<span style="color:var(--text-muted)">تصویری با ویژگی alt یافت نشد</span>'}</td></tr>
                     
                     <tr>
+                        <td data-label="شاخص سئو"><strong>متن‌های لنگر (Anchor Texts) شناسایی‌شده</strong></td>
+                        <td data-label="محتوا">
+                            <span class="count-badge" style="margin-bottom: 0.5rem; display: inline-block;">تعداد کل تگ‌های لینک‌دار: ${anchorTexts.length} عدد</span>
+                            ${uniqueAnchors.length ? `<div style="max-height:100px; overflow-y:auto; font-size:0.85rem; color:var(--primary);"><ul>${uniqueAnchors.map(a => `<li>${a}</li>`).join('')}</ul></div>` : '<br><span style="color:var(--text-muted)">هیچ متنی درون تگ‌های لینک یافت نشد.</span>'}
+                        </td>
+                    </tr>
+
+                    <tr>
                         <td data-label="شاخص سئو"><strong>متن استخراج‌شده از بدنه (شبیه‌سازی متن خالص)</strong></td>
                         <td data-label="محتوا">
                             <span class="count-badge" style="margin-bottom: 0.5rem; display: inline-block;">حجم محتوای شناسایی شده: ${wordCount} کلمه خالص</span>
-                            <div class="body-preview-box">${previewText || '<span style="color:var(--error)">هیچ متنی یافت نشد! مطمئن شوید سند دارای پاراگراف متنی است.</span>'}</div>
+                            <div class="body-preview-box">${previewText || '<span style="color:var(--error)">هیچ متنی یافت نشد!</span>'}</div>
                         </td>
                     </tr>
                 </tbody>
