@@ -23,7 +23,7 @@
             --primary-hover: #ea580c;     /* Burned Orange */
             --accent: #b45309;            /* Deep Amber / Gold Accent for metrics */
             --accent-bg: #fef3c7;         /* Soft Cream Amber Fill */
-            --error: #dc2626;             /* Velvet Crimson */
+            --error: #dc2626;              /* Velvet Crimson */
             
             --radius-lg: 14px;
             --radius-md: 8px;
@@ -447,6 +447,7 @@ async function triggerUnifiedExtractionWorkflow() {
     startBtn.disabled = true;
     statusDiv.style.display = "block";
 
+    // مرحله ۱: استخراج کامل داده‌های متنی بدون تداخل در پردازش گرامر
     if (activeUrls.length > 0) {
         for (let url of activeUrls) {
             try {
@@ -465,8 +466,11 @@ async function triggerUnifiedExtractionWorkflow() {
         });
     }
 
+    // مرحله ۲: شروع شمارش، رندر جداول و متراژ نهایی کلمات پس از خاتمه فاز استخراج
     if (allExtractedTexts.length > 0) {
         statusDiv.innerText = "در حال فرآوری و متراژ آماری کل عبارات کلیدی به صورت یکپارچه...";
+        
+        // الحاق یک دست و تمیز کلمات بدون به هم خوردگی فواصل
         const combinedGlobalText = allExtractedTexts.join(" ");
         
         renderGlobalPhraseTables(combinedGlobalText, phraseResultsSection);
@@ -493,28 +497,24 @@ function processHtmlDocument(label, htmlContent, allExtractedTexts, perSourcePhr
     const h3s = Array.from(doc.querySelectorAll('h3')).map(el => el.innerText.trim());
     const altTexts = Array.from(doc.querySelectorAll('img')).map(img => img.getAttribute('alt')).filter(alt => alt && alt.trim() !== "").map(alt => alt.trim());
 
-    // --- فرآیند اختصاصی استخراج متن‌های لنگر (Anchor Texts) ---
-    // جمع‌آوری تمامی محتواهای متنی معتبر قرار گرفته بین تگ‌های <a> و </a>
+    // جمع‌آوری لنگرها
     const anchorTexts = Array.from(doc.querySelectorAll('a'))
         .map(el => el.innerText.trim())
         .filter(text => text !== "");
 
-    // مکانیزم جامع و ۱۰۰٪ پاک‌سازی سند برای استخراج کلمات بدنه اصلی
+    // همسان‌سازی کامل تگ‌های غیر ساختاری برای استخراج کلمات تمیز بدنه
     const cleanDoc = doc.cloneNode(true);
-    // ما تگ a را حذف نمی‌کنیم تا متن آن (Anchor text) در بدنه اصلی باقی مانده و حتماً شمارش شود.
     const elementsToRemove = cleanDoc.querySelectorAll('script, style, svg, path, iframe, nav, header, footer, noscript, link, head, dialog');
     elementsToRemove.forEach(el => el.remove());
 
-    // متغیر نهایی متن تمیز شده کل بدنه اصلی
     const pureBodyText = cleanDoc.body ? cleanDoc.body.innerText.replace(/\s+/g, ' ').trim() : "";
 
-    // ادغام نهایی: بدنه اصلی (شامل انکور تکست‌ها) + توصیف تصاویر (Alt) برای پردازش عبارات فراگیر
-    const totalUnifiedText = `${pureBodyText} ${altTexts.join(" ")}`;
+    // اضافه کردن فاصله‌گذاری امن در انتهای هر سند برای جلوگیری از چسبیدن کلمه آخر سند اول به کلمه اول سند دوم
+    const totalUnifiedText = `${pureBodyText} ${altTexts.join(" ")} `.trim();
     
     allExtractedTexts.push(totalUnifiedText);
     perSourcePhrases[label] = totalUnifiedText;
 
-    // رندر کارت تحلیل به همراه افزودن بخش ردیف اختصاصی Anchor Texts و شبیه‌ساز کلمات
     renderUrlTable(label, title, metaDesc, h1s, h2s, h3s, altTexts, anchorTexts, pureBodyText, container);
 }
 
@@ -527,7 +527,6 @@ function renderUrlTable(url, title, desc, h1s, h2s, h3s, altTexts, anchorTexts, 
     const wordCount = wordsArray.length;
     const previewText = wordsArray.slice(0, 150).join(' ') + (wordCount > 150 ? ' ...' : '');
 
-    // فیلتر کردن لنگرهای تکراری صرفاً جهت خوانایی بهتر لیست ردیف مشخصات
     const uniqueAnchors = [...new Set(anchorTexts)];
 
     card.innerHTML = `
@@ -575,6 +574,7 @@ function renderErrorTable(url, container) {
 }
 
 function getTopPhrases(text, phraseLength, topCount = 10) {
+    if (!text) return [];
     const persianRegex = /[\u0600-\u06FF\uFB8A\u067E\u0686\u06AF\u200C]+/g;
     const foundWords = text.match(persianRegex);
     if (!foundWords) return [];
@@ -607,12 +607,12 @@ function renderGlobalPhraseTables(globalText, container) {
                         <tr><th>عبارت فارسی</th><th style="width:35%; text-align:center;">فرکانس تکرار</th></tr>
                     </thead>
                     <tbody>
-                        ${topPhrases.map(([phrase, count]) => `
+                        ${topPhrases.length ? topPhrases.map(([phrase, count]) => `
                             <tr>
                                 <td data-label="عبارت"><strong>${phrase}</strong></td>
                                 <td data-label="تکرار" style="text-align:center;"><span class="count-badge">${count} بار</span></td>
                             </tr>
-                        `).join('')}
+                        `).join('') : '<tr><td colspan="2" style="text-align:center; color:var(--text-muted);">عبارتی یافت نشد</td></tr>'}
                     </tbody>
                 </table>
             </div>
