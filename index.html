@@ -281,6 +281,18 @@
             font-weight: 500;
         }
 
+        .body-preview-box {
+            background-color: var(--bg-main);
+            border: 1px dashed var(--border-subtle);
+            padding: 0.75rem;
+            border-radius: var(--radius-md);
+            font-size: 0.85rem;
+            color: var(--text-body);
+            max-height: 120px;
+            overflow-y: auto;
+            white-space: pre-line;
+        }
+
         /* Responsive Mobile Layout Layer */
         @media screen and (max-width: 768px) {
             .table-responsive table, 
@@ -349,7 +361,6 @@
         <p class="subtitle">سیستم پایش و متراژ کلمات کلیدی، برچسب‌های هیدینگ و تصاویر به تفکیک دامنه و سورس متنی</p>
     </header>
     
-    <!-- Unified App Control Panel -->
     <div class="card">
         <div class="dashboard-grid">
             <div class="control-group">
@@ -375,7 +386,6 @@
         <div id="status-output" class="status-bar"></div>
     </div>
 
-    <!-- Output Sections -->
     <div id="url-results-section"></div>
     <div id="phrase-results-section"></div>
 </div>
@@ -483,31 +493,34 @@ function processHtmlDocument(label, htmlContent, allExtractedTexts, perSourcePhr
     const h3s = Array.from(doc.querySelectorAll('h3')).map(el => el.innerText.trim());
     const altTexts = Array.from(doc.querySelectorAll('img')).map(img => img.getAttribute('alt')).filter(alt => alt && alt.trim() !== "").map(alt => alt.trim());
 
-    // --- مکانیزم امن و قطعی برای استخراج ۱۰۰٪ متن بدنه اصلی صفحه ---
-    // شبیه‌سازی کلون سند برای دستکاری امن در حافظه بدون تخریب خروجی ساختاری
+    // مکانیزم جامع و ۱۰۰٪ پاک‌سازی سند برای استخراج کلمات بدنه
     const cleanDoc = doc.cloneNode(true);
-    
-    // حذف فوری و کامل کدهای برنامه‌نویسی، تگ‌های سربرگ و بخش‌های ناوبری عمومی برای جلوگیری از آلودگی آماری
-    const elementsToRemove = cleanDoc.querySelectorAll('script, style, svg, path, iframe, nav, header, footer, noscript, link, head');
+    const elementsToRemove = cleanDoc.querySelectorAll('script, style, svg, path, iframe, nav, header, footer, noscript, link, head, dialog');
     elementsToRemove.forEach(el => el.remove());
 
-    // اکنون متغیر کل متن بدنه، شامل ۱۰۰٪ کلمات بخش‌های محتوایی، سوالات متداول و کامنت‌ها است
-    const pureBodyText = cleanDoc.body ? cleanDoc.body.innerText : "";
+    // متغیر نهایی متن تمیز شده کل بدنه اصلی
+    const pureBodyText = cleanDoc.body ? cleanDoc.body.innerText.replace(/\s+/g, ' ').trim() : "";
 
-    // ادغام متن خالص کل بدنه به همراه توصیف تصاویر (Alt) برای پردازش آماری
+    // ادغام برای کلمات کلیدی
     const totalUnifiedText = `${pureBodyText} ${altTexts.join(" ")}`;
     
     allExtractedTexts.push(totalUnifiedText);
     perSourcePhrases[label] = totalUnifiedText;
 
-    // رندر کارت‌های ساختاری سئو
-    renderUrlTable(label, title, metaDesc, h1s, h2s, h3s, altTexts, container);
+    // رندر کارت سئو به همراه ردیف نمایش‌دهنده متن بدنه اصلی
+    renderUrlTable(label, title, metaDesc, h1s, h2s, h3s, altTexts, pureBodyText, container);
 }
 
-function renderUrlTable(url, title, desc, h1s, h2s, h3s, altTexts, container) {
+function renderUrlTable(url, title, desc, h1s, h2s, h3s, altTexts, pureBodyText, container) {
     const card = document.createElement('div');
     card.className = 'card';
     const dynamicLink = url.startsWith('http') ? `<a href="${url}" target="_blank" style="direction:ltr; display:inline-block;">${url}</a>` : url;
+    
+    // آماده‌سازی پیش‌نمایش کوچکی از کلمات بدنه استخراج شده برای ردیف جدید
+    const wordsArray = pureBodyText.split(' ').filter(w => w.length > 0);
+    const wordCount = wordsArray.length;
+    const previewText = wordsArray.slice(0, 150).join(' ') + (wordCount > 150 ? ' ...' : '');
+
     card.innerHTML = `
         <h3 style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem; font-size:1rem; word-break: break-all;">منبع ورودی: ${dynamicLink}</h3>
         <div class="table-responsive">
@@ -519,6 +532,14 @@ function renderUrlTable(url, title, desc, h1s, h2s, h3s, altTexts, container) {
                     <tr><td data-label="شاخص سئو"><strong>عناوین H2</strong></td><td data-label="محتوا">${h2s.length ? `<ul>${h2s.map(h => `<li>${h}</li>`).join('')}</ul>` : '<span style="color:var(--text-muted)">یافت نشد</span>'}</td></tr>
                     <tr><td data-label="شاخص سئو"><strong>عناوین H3</strong></td><td data-label="محتوا">${h3s.length ? `<ul>${h3s.map(h => `<li>${h}</li>`).join('')}</ul>` : '<span style="color:var(--text-muted)">یافت نشد</span>'}</td></tr>
                     <tr><td data-label="شاخص سئو"><strong>متن تصاویر (Alt)</strong></td><td data-label="محتوا">${altTexts.length ? `<ul>${altTexts.map(a => `<li>${a}</li>`).join('')}</ul>` : '<span style="color:var(--text-muted)">تصویری با ویژگی alt یافت نشد</span>'}</td></tr>
+                    
+                    <tr>
+                        <td data-label="شاخص سئو"><strong>متن استخراج‌شده از بدنه (شبیه‌سازی متن خالص)</strong></td>
+                        <td data-label="محتوا">
+                            <span class="count-badge" style="margin-bottom: 0.5rem; display: inline-block;">حجم محتوای شناسایی شده: ${wordCount} کلمه خالص</span>
+                            <div class="body-preview-box">${previewText || '<span style="color:var(--error)">هیچ متنی یافت نشد! مطمئن شوید سند دارای پاراگراف متنی است.</span>'}</div>
+                        </td>
+                    </tr>
                 </tbody>
             </table>
         </div>
