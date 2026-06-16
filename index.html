@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>استخراج‌گر جامع سئو با فیلتر عبارات عمومی فروشگاهی</title>
+    <title>استخراج‌گر جامع سئو با فیلتر عبارات عمومی فروشگاهی (نسخه ۴ عبارت برتر)</title>
     <style>
         :root {
             --bg-main: #fcfbf9;
@@ -195,7 +195,6 @@
         .count-badge { font-size: 0.75rem; font-weight: 700; color: var(--accent); background-color: var(--accent-bg); padding: 0.1rem 0.4rem; border-radius: var(--radius-sm); }
         .body-preview-box { background-color: var(--bg-main); border: 1px dashed var(--border-subtle); padding: 0.75rem; border-radius: var(--radius-md); max-height: 120px; overflow-y: auto; white-space: pre-line; font-size: 0.85rem; }
         
-        /* Notice block for active filters */
         .filter-notice {
             font-size: 0.8rem;
             color: var(--text-muted);
@@ -216,13 +215,13 @@
     
     <div class="card">
         <div class="filter-notice">
-            <strong>صافی هوشمند فعال است:</strong> کلمات عمومی فروشگاهی مانند «هزار، تومان، محصول، سبد خرید، افزودن به سبد خرید» به طور خودکار از محاسبات چگالی حذف خواهند شد تا ارزش عبارات تخصصی مشخص شود.
+            <strong>صافی هوشمند فعال است:</strong> کلمات عمومی فروشگاهی مانند «هزار، تومان، محصول، سبد خرید، افزودن به سبد خرید» به طور خودکار از محاسبات چگالی حذف خواهند شد تا ارزش عبارات تخصصی مشخص شود. (نمایش تا ۴ عبارت برتر در ماتریس نهایی)
         </div>
 
         <div class="dashboard-grid">
             <div class="control-group">
                 <label>بخش اول: استخراج خودکار آدرس‌ها (تا ۵ آدرس همزمان)</label>
-                <input type="url" class="url-input" placeholder="https://example1.com">
+                <input type="url" class="url-input" placeholder="https://example1.com" value="https://kayhanravan.ir/arshad/clinical-general-psychology/">
                 <input type="url" class="url-input" placeholder="https://example2.com">
                 <input type="url" class="url-input" placeholder="https://example3.com">
                 <input type="url" class="url-input" placeholder="https://example4.com">
@@ -248,7 +247,6 @@
 </div>
 
 <script>
-// Define e-commerce global stop words to eliminate clutter from analytics
 const STOP_WORDS = ["هزار", "تومان", "محصول", "سبد", "خرید", "افزودن"];
 
 let seoContextData = { titles: [], h1s: [], descriptions: [] };
@@ -408,7 +406,6 @@ function getTopPhrases(text, phraseLength, topCount = 10) {
     const foundWords = text.match(persianRegex);
     if (!foundWords) return [];
 
-    // Filter step: Remove short single characters AND check against our e-commerce filter list
     const words = foundWords.filter(word => {
         const cleanWord = word.trim();
         return cleanWord.length > 1 && !STOP_WORDS.includes(cleanWord);
@@ -473,11 +470,12 @@ function renderGlobalPhraseTables(globalText, container) {
     container.appendChild(flexContainer);
 }
 
-function formatTopTwoPhrases(text, phraseLen) {
-    const topTwo = getTopPhrases(text, phraseLen, 2);
-    if (topTwo.length === 0) return '<span style="color:var(--text-muted)">یافت نشد</span>';
+// Updated limit parameter: Fetches top 4 dynamic values per cell column
+function formatTopFourPhrases(text, phraseLen) {
+    const topFour = getTopPhrases(text, phraseLen, 4);
+    if (topFour.length === 0) return '<span style="color:var(--text-muted)">یافت نشد</span>';
     
-    return topTwo.map(([phrase, count]) => `
+    return topFour.map(([phrase, count]) => `
         <div class="phrase-item">
             <div class="phrase-wrapper">
                 <span class="phrase-text">${phrase}</span>
@@ -491,14 +489,14 @@ function formatTopTwoPhrases(text, phraseLen) {
 function renderPerUrlPhraseTable(perSourcePhrases, container) {
     const div = document.createElement('div');
     div.className = 'card';
-    div.innerHTML = `<h3>جدول نهایی: تفکیک دو کلمه کلیدی برتر به ازای هر ورودی</h3>`;
+    div.innerHTML = `<h3>جدول نهایی: تفکیک چهار عبارت کلیدی برتر به ازای هر ورودی</h3>`;
     
     let tableHtml = `
         <div class="table-responsive">
             <table id="per-url-table-dom">
                 <thead>
                     <tr>
-                        <th style="direction:ltr; text-align:left; width: 25%">منبع ورودی اطلاعات</th>
+                        <th style="direction:ltr; text-align:left; width: 22%">منبع ورودی اطلاعات</th>
                         <th>عبارات ۲ کلمه‌ای</th>
                         <th>عبارات ۳ کلمه‌ای</th>
                         <th>عبارات ۴ کلمه‌ای</th>
@@ -509,10 +507,10 @@ function renderPerUrlPhraseTable(perSourcePhrases, container) {
     `;
 
     for (const [sourceLabel, text] of Object.entries(perSourcePhrases)) {
-        const cellP2 = formatTopTwoPhrases(text, 2);
-        const cellP3 = formatTopTwoPhrases(text, 3);
-        const cellP4 = formatTopTwoPhrases(text, 4);
-        const cellP5 = formatTopTwoPhrases(text, 5);
+        const cellP2 = formatTopFourPhrases(text, 2);
+        const cellP3 = formatTopFourPhrases(text, 3);
+        const cellP4 = formatTopFourPhrases(text, 4);
+        const cellP5 = formatTopFourPhrases(text, 5);
 
         const isUrl = sourceLabel.startsWith('http');
         const stylizedLabel = isUrl ? `<small>${sourceLabel}</small>` : `<span>${sourceLabel}</span>`;
