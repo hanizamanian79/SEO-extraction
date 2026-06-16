@@ -3,28 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>استخراج‌گر جامع سئو و تحلیل‌گر عبارات فارسی</title>
+    <title>استخراج‌گر جامع سئو و تحلیل‌گر کالیبره عبارات</title>
     <style>
         :root {
-            /* Premium Chalk & Light Slate Minimalist Palette */
-            --bg-main: #fcfbf9;           /* Soft Linen Cream Chalk White */
-            --bg-surface: #ffffff;        /* Crisp White Elements */
-            --bg-neutral-light: #f1f0ec;  /* Balanced Warm Gray for tables/inputs */
-            --border-subtle: #e4e2dd;     /* Low-contrast organic border lines */
-            --border-active: #f97316;     /* Vivid Safety Orange Accent */
-            
-            /* High Contrast Neutral Typography */
-            --text-heading: #1c1917;      /* Deep Charcoal Black */
-            --text-body: #44403c;         /* Soft Dark Stone Gray */
-            --text-muted: #78716c;        /* Muted Taupe Gray */
-            
-            /* Accent Signifiers */
-            --primary: #f97316;           /* Crisp Modern Orange */
-            --primary-hover: #ea580c;     /* Burned Orange */
-            --accent: #b45309;            /* Deep Amber / Gold Accent for metrics */
-            --accent-bg: #fef3c7;         /* Soft Cream Amber Fill */
-            --error: #dc2626;             /* Velvet Crimson */
-            
+            --bg-main: #fcfbf9;
+            --bg-surface: #ffffff;
+            --bg-neutral-light: #f1f0ec;
+            --border-subtle: #e4e2dd;
+            --border-active: #f97316;
+            --text-heading: #1c1917;
+            --text-body: #44403c;
+            --text-muted: #78716c;
+            --primary: #f97316;
+            --primary-hover: #ea580c;
+            --accent: #b45309;
+            --accent-bg: #fef3c7;
+            --error: #dc2626;
             --radius-lg: 14px;
             --radius-md: 8px;
             --radius-sm: 4px;
@@ -45,7 +39,7 @@
 
         .container {
             width: 100%;
-            max-width: 1200px;
+            max-width: 1300px;
             margin: 0 auto;
         }
 
@@ -60,7 +54,6 @@
             font-weight: 800;
             color: var(--text-heading);
             margin: 0 0 0.5rem 0;
-            letter-spacing: -0.01em;
         }
 
         .subtitle {
@@ -87,14 +80,6 @@
             border-radius: var(--radius-sm);
         }
 
-        h3 {
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text-heading);
-            margin: 0 0 1rem 0;
-        }
-
-        /* Minimalist Modern Cards */
         .card {
             background-color: var(--bg-surface);
             border: 1px solid var(--border-subtle);
@@ -104,7 +89,6 @@
             box-shadow: 0 4px 20px -2px rgba(28, 25, 23, 0.03);
         }
 
-        /* Two Column Dynamic Dashboard */
         .dashboard-grid {
             display: grid;
             grid-template-columns: 1fr;
@@ -113,9 +97,7 @@
         }
 
         @media (min-width: 768px) {
-            .dashboard-grid {
-                grid-template-columns: 1fr 1fr;
-            }
+            .dashboard-grid { grid-template-columns: 1fr 1fr; }
         }
 
         .control-group {
@@ -140,25 +122,12 @@
             color: var(--text-heading);
             font-size: 0.9rem;
             box-sizing: border-box;
-            transition: var(--transition-smooth);
         }
 
         input[type="url"] { direction: ltr; font-family: monospace; }
         textarea { direction: ltr; font-family: monospace; height: 110px; resize: none; }
 
-        input[type="url"]:focus, textarea:focus {
-            outline: none;
-            border-color: var(--border-active);
-            background-color: var(--bg-surface);
-            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
-        }
-
-        /* Action Buttons */
-        .btn-stack {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
+        .btn-stack { display: flex; gap: 1rem; flex-wrap: wrap; }
 
         button {
             flex: 1;
@@ -171,24 +140,11 @@
             font-size: 0.95rem;
             cursor: pointer;
             font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            transition: var(--transition-smooth);
         }
 
-        button:hover {
-            background-color: var(--primary-hover);
-        }
+        button:hover { background-color: var(--primary-hover); }
+        button:disabled { background-color: var(--bg-neutral-light); color: var(--text-muted); cursor: not-allowed; }
 
-        button:disabled {
-            background-color: var(--bg-neutral-light);
-            color: var(--text-muted);
-            cursor: not-allowed;
-            border: 1px solid var(--border-subtle);
-        }
-
-        /* Status Feedback Area */
         .status-bar {
             margin-top: 1rem;
             padding: 0.75rem;
@@ -197,57 +153,66 @@
             border: 1px solid rgba(180, 83, 9, 0.15);
             color: var(--accent);
             text-align: center;
-            font-size: 0.9rem;
-            font-weight: 600;
             display: none;
         }
 
-        /* Advanced Responsive Layout Framework */
-        .table-responsive {
+        /* 5-Column Side-by-Side Horizontal Scroll Matrix Wrapper */
+        .scroll-container {
             width: 100%;
-            margin: 1rem 0;
+            overflow-x: auto;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            background-color: var(--bg-surface);
+            margin-bottom: 2rem;
+            -webkit-overflow-scrolling: touch;
         }
 
-        table {
+        .comparison-table {
             width: 100%;
             border-collapse: collapse;
             font-size: 0.9rem;
-            background-color: var(--bg-surface);
+            min-width: 1250px;
+            table-layout: fixed;
         }
 
-        th {
+        .comparison-table th, .comparison-table td {
+            padding: 1rem;
+            border: 1px solid var(--border-subtle);
+            vertical-align: top;
+            text-align: right;
+            word-wrap: break-word;
+        }
+
+        .comparison-table th.metric-header, 
+        .comparison-table td.metric-header {
+            position: sticky;
+            right: 0;
+            background-color: var(--bg-neutral-light);
+            color: var(--text-heading);
+            font-weight: 700;
+            width: 190px;
+            z-index: 2;
+            border-left: 2px solid var(--border-subtle);
+        }
+
+        .comparison-table th.url-column-header {
             background-color: var(--bg-main);
             color: var(--text-heading);
             font-weight: 700;
-            font-size: 0.85rem;
-            padding: 0.85rem 1rem;
-            border-bottom: 2px solid var(--border-subtle);
         }
 
-        td {
-            padding: 0.85rem 1rem;
-            text-align: right;
-            border-bottom: 1px solid var(--border-subtle);
-            vertical-align: top;
-        }
+        .table-responsive { width: 100%; margin: 1rem 0; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; background-color: var(--bg-surface); }
+        th { background-color: var(--bg-main); color: var(--text-heading); font-weight: 700; padding: 0.85rem 1rem; border-bottom: 2px solid var(--border-subtle); }
+        td { padding: 0.85rem 1rem; border-bottom: 1px solid var(--border-subtle); }
 
-        ul { margin: 0; padding-right: 1.1rem; padding-left: 0; }
+        ul { margin: 0; padding-right: 1.1rem; }
         li { margin-bottom: 0.25rem; }
-        
         a { color: var(--primary); text-decoration: none; }
-        a:hover { text-decoration: underline; }
 
-        .flex-tables {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1.5rem;
-        }
+        .flex-tables { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+        @media (min-width: 768px) { .flex-tables { grid-template-columns: repeat(2, 1fr); } }
 
-        @media (min-width: 768px) {
-            .flex-tables { grid-template-columns: repeat(2, 1fr); }
-        }
-
-        /* Micro Phrase Design Badges */
         .phrase-item {
             display: flex;
             align-items: center;
@@ -257,13 +222,7 @@
             padding: 0.4rem 0.6rem;
             border-radius: var(--radius-sm);
             margin-bottom: 0.4rem;
-            font-size: 0.85rem;
-            gap: 1rem;
-        }
-        
-        .phrase-text {
-            color: var(--text-heading);
-            font-weight: 500;
+            font-size: 0.82rem;
         }
         
         .count-badge {
@@ -273,12 +232,7 @@
             background-color: var(--accent-bg);
             padding: 0.1rem 0.4rem;
             border-radius: var(--radius-sm);
-        }
-
-        .error-msg {
-            color: var(--error);
-            font-size: 0.85rem;
-            font-weight: 500;
+            white-space: nowrap;
         }
 
         .body-preview-box {
@@ -286,70 +240,10 @@
             border: 1px dashed var(--border-subtle);
             padding: 0.75rem;
             border-radius: var(--radius-md);
-            font-size: 0.85rem;
-            color: var(--text-body);
-            max-height: 120px;
+            max-height: 140px;
             overflow-y: auto;
             white-space: pre-line;
-        }
-
-        /* Responsive Mobile Layout Layer */
-        @media screen and (max-width: 768px) {
-            .table-responsive table, 
-            .table-responsive tbody, 
-            .table-responsive tr, 
-            .table-responsive td { 
-                display: block; 
-                width: 100%; 
-            }
-            
-            .table-responsive thead { 
-                display: none; 
-            }
-
-            .table-responsive tr {
-                background: var(--bg-surface);
-                border: 1px solid var(--border-subtle);
-                border-radius: var(--radius-md);
-                margin-bottom: 1rem;
-                padding: 0.75rem;
-            }
-
-            .table-responsive td {
-                text-align: right;
-                border-bottom: 1px dashed var(--border-subtle);
-                padding: 0.5rem 0;
-            }
-
-            .table-responsive td:last-child {
-                border-bottom: none;
-            }
-
-            .table-responsive td::before {
-                content: attr(data-label);
-                display: block;
-                font-size: 0.75rem;
-                font-weight: 700;
-                color: var(--text-muted);
-                margin-bottom: 0.2rem;
-                text-transform: uppercase;
-            }
-
-            #per-url-table-dom tbody tr {
-                display: flex;
-                flex-direction: column;
-                gap: 0.75rem;
-                border: 1px solid var(--border-subtle);
-                background-color: var(--bg-surface);
-                padding: 1rem;
-                margin-bottom: 1.5rem;
-                border-radius: var(--radius-lg);
-            }
-
-            #per-url-table-dom td {
-                border: none;
-                padding: 0;
-            }
+            font-size: 0.85rem;
         }
     </style>
 </head>
@@ -357,15 +251,15 @@
 
 <div class="container">
     <header>
-        <h1>استخراج‌گر سئو و تحلیل‌گر عبارات فارسی</h1>
-        <p class="subtitle">سیستم پایش یکپارچه چگالی کلمات: ترکیب همزمان Title، Meta Description، هیدینگ‌ها، متون بدنه، Anchor Texts و ویژگی Alt</p>
+        <h1>استخراج‌گر کالیبره سئو و تحلیل‌گر ماتریسی عبارات فارسی</h1>
+        <p class="subtitle">سیستم پایش ۵ ستونه با تفکیک دقیق فواصل جملات و پیشگیری از هم‌پوشانی آماری کلمات</p>
     </header>
     
     <div class="card">
         <div class="dashboard-grid">
             <div class="control-group">
-                <label>بخش اول: استخراج خودکار آدرس‌ها (تا ۵ آدرس همزمان)</label>
-                <input type="url" class="url-input" placeholder="https://example1.com" value="https://kayhanravan.ir/arshad/clinical-general-psychology/">
+                <label>بخش اول: استخراج خودکار آدرس‌ها (تا ۵ آدرس همزمان مقایسه‌ای)</label>
+                <input type="url" class="url-input" placeholder="https://example1.com" value="https://ravanamooz.ir/blog/%DA%AF%D8%B1%D8%A7%DB%8C%D8%B4-%D9%87%D8%A7%DB%8C-%D8%A7%D8%B1%D8%B4%D8%AF-%D8%B1%D9%88%D8%A7%D9%86%D8%B4%D9%86%D8%A7%D8%B3%DB%8C/">
                 <input type="url" class="url-input" placeholder="https://example2.com">
                 <input type="url" class="url-input" placeholder="https://example3.com">
                 <input type="url" class="url-input" placeholder="https://example4.com">
@@ -374,19 +268,20 @@
 
             <div class="control-group">
                 <label>بخش دوم: کدهای سورس دستی HTML (تا ۲ سورس همزمان)</label>
-                <textarea class="html-input" placeholder="سورس کد اول (View Page Source) را اینجا پیست کنید..."></textarea>
-                <textarea class="html-input" style="margin-top: 0.5rem;" placeholder="سورس کد دوم (View Page Source) را اینجا پیست کنید..."></textarea>
+                <textarea class="html-input" placeholder="سورس کد اول را اینجا پیست کنید..."></textarea>
+                <textarea class="html-input" style="margin-top: 0.5rem;" placeholder="سورس کد دوم را اینجا پیست کنید..."></textarea>
             </div>
         </div>
 
         <div class="btn-stack">
-            <button id="start-btn" onclick="triggerUnifiedExtractionWorkflow()">شروع پردازش و تحلیل همزمان کل داده‌ها</button>
+            <button id="start-btn" onclick="triggerUnifiedExtractionWorkflow()">شروع پردازش و متراژ دقیق کلمات کلیدی</button>
         </div>
         
         <div id="status-output" class="status-bar"></div>
     </div>
 
-    <div id="url-results-section"></div>
+    <div id="comparison-section"></div>
+    
     <div id="phrase-results-section"></div>
 </div>
 
@@ -396,30 +291,21 @@ async function fetchWithProxyFallback(targetUrl, statusDiv) {
     const proxies = [
         { name: "CorsProxy.io", url: `https://corsproxy.io/?${encodedUrl}`, type: "text" },
         { name: "AllOrigins (Raw)", url: `https://api.allorigins.win/raw?url=${encodedUrl}`, type: "text" },
-        { name: "CodeTabs Proxy", url: `https://api.codetabs.com/v1/proxy?quest=${targetUrl}`, type: "text" },
-        { name: "AllOrigins (JSON Wrapped)", url: `https://api.allorigins.win/get?url=${encodedUrl}`, type: "json" }
+        { name: "CodeTabs Proxy", url: `https://api.codetabs.com/v1/proxy?quest=${targetUrl}`, type: "text" }
     ];
 
     for (let i = 0; i < proxies.length; i++) {
         const proxy = proxies[i];
         statusDiv.style.display = "block";
-        statusDiv.innerText = `در حال خزش آدرس از طریق سرور شبکه ${i + 1} (${proxy.name})...`;
-        
+        statusDiv.innerText = `در حال فراخوانی لینک مبدا از سرور ${i + 1} (${proxy.name})...`;
         try {
             const response = await fetch(proxy.url);
-            if (!response.ok) throw new Error("Blocked");
-            if (proxy.type === "json") {
-                const json = await response.json();
-                if (json.contents) return json.contents;
-            } else {
-                const text = await response.text();
-                if (text && text.trim().length > 200) return text;
-            }
-        } catch (e) {
-            console.warn(`${proxy.name} bypassed.`);
-        }
+            if (!response.ok) throw new Error();
+            const text = await response.text();
+            if (text && text.trim().length > 200) return text;
+        } catch (e) {}
     }
-    throw new Error("Blocked");
+    throw new Error();
 }
 
 async function triggerUnifiedExtractionWorkflow() {
@@ -427,20 +313,21 @@ async function triggerUnifiedExtractionWorkflow() {
     const htmlInputs = document.querySelectorAll('.html-input');
     const startBtn = document.getElementById('start-btn');
     const statusDiv = document.getElementById('status-output');
-    const urlResultsSection = document.getElementById('url-results-section');
+    const comparisonSection = document.getElementById('comparison-section');
     const phraseResultsSection = document.getElementById('phrase-results-section');
     
-    urlResultsSection.innerHTML = "<h2>جزئیات تشخیصی ساختار تفکیکی هر ورودی</h2>";
+    comparisonSection.innerHTML = "<h2>جدول مقایسه ۵ ستونه ساختار سئو و محتوای خالص ورودی‌ها</h2>";
     phraseResultsSection.innerHTML = "<h2>جداول تحلیل عبارات کلیدی تکرار شونده فارسی (مجموع کل ورودی‌ها)</h2>";
     
     let allExtractedTexts = [];
     let perSourcePhrases = {}; 
+    let parsedSourcesData = [];
 
     const activeUrls = Array.from(urlInputs).map(i => i.value.trim()).filter(url => url !== "");
     const activeHtmlTexts = Array.from(htmlInputs).map(i => i.value.trim()).filter(text => text !== "");
 
     if (activeUrls.length === 0 && activeHtmlTexts.length === 0) {
-        alert("خطا: هیچ آدرس اینترنتی یا سورس کدی برای پردازش وارد نشده است.");
+        alert("خطا: ورودی یافت نشد.");
         return;
     }
 
@@ -451,138 +338,143 @@ async function triggerUnifiedExtractionWorkflow() {
         for (let url of activeUrls) {
             try {
                 const htmlText = await fetchWithProxyFallback(url, statusDiv);
-                processHtmlDocument(url, htmlText, allExtractedTexts, perSourcePhrases, urlResultsSection);
+                const data = extractHtmlMetrics(url, htmlText, allExtractedTexts, perSourcePhrases);
+                parsedSourcesData.push(data);
             } catch (error) {
-                renderErrorTable(url, urlResultsSection);
+                parsedSourcesData.push({ label: url, isError: true });
             }
         }
     }
 
     if (activeHtmlTexts.length > 0) {
         activeHtmlTexts.forEach((htmlData, index) => {
-            statusDiv.innerText = `در حال استخراج داده‌های متنی سورس دستی شماره ${index + 1}...`;
-            const label = `سورس دستی وارد شده شماره ${index + 1}`;
-            processHtmlDocument(label, htmlData, allExtractedTexts, perSourcePhrases, urlResultsSection);
+            const label = `سورس دستی شماره ${index + 1}`;
+            const data = extractHtmlMetrics(label, htmlData, allExtractedTexts, perSourcePhrases);
+            parsedSourcesData.push(data);
         });
     }
 
-    if (allExtractedTexts.length > 0) {
-        statusDiv.innerText = "در حال فرآوری و متراژ آماری کل عبارات کلیدی به صورت یکپارچه...";
-        const combinedGlobalText = allExtractedTexts.join(" ");
+    if (parsedSourcesData.length > 0) {
+        // 1. Render Side-by-Side Matrix Table
+        renderUnifiedComparisonMatrix(parsedSourcesData, comparisonSection);
         
+        // 2. Render N-gram Global Counters
+        const combinedGlobalText = allExtractedTexts.join(" [BREAK] ");
         renderGlobalPhraseTables(combinedGlobalText, phraseResultsSection);
+        
+        // 3. Render Final Matrix Split Table
         renderPerUrlPhraseTable(perSourcePhrases, phraseResultsSection);
         
-        statusDiv.innerText = "عملیات ارزیابی ترکیبی با موفقیت به پایان رسید!";
-    } else {
-        statusDiv.innerText = "تحلیل ناموفق بود: هیچ متنی یافت نشد.";
+        statusDiv.innerText = "تحلیل کاملاً دقیق و کالیبره شده با موفقیت به پایان رسید!";
     }
     
     startBtn.disabled = false;
 }
 
-function processHtmlDocument(label, htmlContent, allExtractedTexts, perSourcePhrases, container) {
+function extractHtmlMetrics(label, htmlContent, allExtractedTexts, perSourcePhrases) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlContent, "text/html");
 
-    // ۱. استخراج متادیتاهای اصلی سئو
     const title = doc.querySelector('title')?.innerText || "";
     const metaDesc = doc.querySelector('meta[name="description"]')?.getAttribute('content') || "";
-    
-    // ۲. استخراج ساختار تگ‌های محتوایی
-    const h1s = Array.from(doc.querySelectorAll('h1')).map(el => el.innerText.trim());
-    const h2s = Array.from(doc.querySelectorAll('h2')).map(el => el.innerText.trim());
-    const h3s = Array.from(doc.querySelectorAll('h3')).map(el => el.innerText.trim());
-    const altTexts = Array.from(doc.querySelectorAll('img')).map(img => img.getAttribute('alt')).filter(alt => alt && alt.trim() !== "").map(alt => alt.trim());
-    const anchorTexts = Array.from(doc.querySelectorAll('a')).map(el => el.innerText.trim()).filter(text => text !== "");
+    const h1s = Array.from(doc.querySelectorAll('h1')).map(el => el.innerText.trim()).filter(t => t !== "");
+    const h2s = Array.from(doc.querySelectorAll('h2')).map(el => el.innerText.trim()).filter(t => t !== "");
+    const h3s = Array.from(doc.querySelectorAll('h3')).map(el => el.innerText.trim()).filter(t => t !== "");
+    const altTexts = Array.from(doc.querySelectorAll('img')).map(img => img.getAttribute('alt')).filter(alt => alt && alt.trim() !== "");
+    const anchorTexts = Array.from(doc.querySelectorAll('a')).map(el => el.innerText.trim()).filter(t => t !== "");
 
-    // ۳. مکانیزم پاک‌سازی پیشرفته برای استخراج محتوای بدنه اصلی
+    // ایجاد کلون سند جهت اعمال فیلتر جداسازی جملات
     const cleanDoc = doc.cloneNode(true);
-    const elementsToRemove = cleanDoc.querySelectorAll('script, style, svg, path, iframe, nav, header, footer, noscript, link, head, dialog');
-    elementsToRemove.forEach(el => el.remove());
+    const blockElements = cleanDoc.querySelectorAll('script, style, svg, iframe, nav, header, footer, noscript, head, dialog, sidebar, .menu, .sidebar, #footer, #header');
+    blockElements.forEach(el => el.remove());
 
-    const pureBodyText = cleanDoc.body ? cleanDoc.body.innerText.replace(/\s+/g, ' ').trim() : "";
+    // تزریق شناسه مرز معنایی برای جلوگیری از چسبیدن پاراگراف‌ها یا لینک‌ها به یکدیگر
+    cleanDoc.querySelectorAll('p, div, li, h1, h2, h3, tr, section, article, td, a').forEach(el => {
+        el.insertAdjacentText('beforeend', ' [BREAK] ');
+    });
 
-    // ۴. ترکیب همه‌جانبه تمام عبارات همین لینک (Title + Description + Headings + AnchorTexts + Alts + Body)
-    const combinedLinkElementsText = `
-        ${title} ${metaDesc} 
-        ${h1s.join(" ")} ${h2s.join(" ")} ${h3s.join(" ")} 
-        ${anchorTexts.join(" ")} ${altTexts.join(" ")} 
-        ${pureBodyText}
-    `;
+    const pureBodyText = cleanDoc.body ? cleanDoc.body.innerText : "";
     
-    allExtractedTexts.push(combinedLinkElementsText);
-    perSourcePhrases[label] = combinedLinkElementsText; // دیتابیس اختصاصی این لینک برای جدول نهایی
+    // ترکیب کالیبره‌شده کل اجزا بدون جابجایی یا اتصال نامعتبر کلمات
+    const textSnapshotForCounting = `${title} [BREAK] ${metaDesc} [BREAK] ${h1s.join(" ")} [BREAK] ${pureBodyText}`;
+    
+    allExtractedTexts.push(textSnapshotForCounting);
+    perSourcePhrases[label] = textSnapshotForCounting;
 
-    // رندر کارت‌های تشخصیصی تفکیکی
-    renderUrlTable(label, title, metaDesc, h1s, h2s, h3s, altTexts, anchorTexts, pureBodyText, container);
+    return {
+        label, isError: false, title, metaDesc, h1s, h2s, h3s, altTexts, anchorTexts, pureBodyText: pureBodyText.replace(/\[BREAK\]/g, '\n').replace(/\s+/g, ' ').trim()
+    };
 }
 
-function renderUrlTable(url, title, desc, h1s, h2s, h3s, altTexts, anchorTexts, pureBodyText, container) {
-    const card = document.createElement('div');
-    card.className = 'card';
-    const dynamicLink = url.startsWith('http') ? `<a href="${url}" target="_blank" style="direction:ltr; display:inline-block;">${url}</a>` : url;
-    
-    const wordsArray = pureBodyText.split(' ').filter(w => w.length > 0);
-    const wordCount = wordsArray.length;
-    const previewText = wordsArray.slice(0, 150).join(' ') + (wordCount > 150 ? ' ...' : '');
-    const uniqueAnchors = [...new Set(anchorTexts)];
+function renderUnifiedComparisonMatrix(sources, container) {
+    const scrollWrapper = document.createElement('div');
+    scrollWrapper.className = 'scroll-container';
 
-    card.innerHTML = `
-        <h3 style="border-bottom: 1px solid var(--border-subtle); padding-bottom: 0.5rem; font-size:1rem; word-break: break-all;">منبع ورودی: ${dynamicLink}</h3>
-        <div class="table-responsive">
-            <table>
-                <tbody>
-                    <tr><td style="width:25%" data-label="شاخص سئو"><strong>Title (عنوان صفحه)</strong></td><td data-label="محتوا" style="color:var(--text-heading); font-weight:600;">${title || '<span style="color:var(--text-muted)">موجود نیست</span>'}</td></tr>
-                    <tr><td data-label="شاخص سئو"><strong>Meta Description</strong></td><td data-label="محتوا">${desc || '<span style="color:var(--text-muted)">موجود نیست</span>'}</td></tr>
-                    <tr><td data-label="شاخص سئو"><strong>عناوین H1</strong></td><td data-label="محتوا">${h1s.length ? `<ul>${h1s.map(h => `<li>${h}</li>`).join('')}</ul>` : '<span style="color:var(--text-muted)">یافت نشد</span>'}</td></tr>
-                    <tr><td data-label="شاخص سئو"><strong>عناوین H2</strong></td><td data-label="محتوا">${h2s.length ? `<ul>${h2s.map(h => `<li>${h}</li>`).join('')}</ul>` : '<span style="color:var(--text-muted)">یافت نشد</span>'}</td></tr>
-                    <tr><td data-label="شاخص سئو"><strong>عناوین H3</strong></td><td data-label="محتوا">${h3s.length ? `<ul>${h3s.map(h => `<li>${h}</li>`).join('')}</ul>` : '<span style="color:var(--text-muted)">یافت نشد</span>'}</td></tr>
-                    <tr><td data-label="شاخص سئو"><strong>متن تصاویر (Alt)</strong></td><td data-label="محتوا">${altTexts.length ? `<ul>${altTexts.map(a => `<li>${a}</li>`).join('')}</ul>` : '<span style="color:var(--text-muted)">تصویری با ویژگی alt یافت نشد</span>'}</td></tr>
-                    <tr>
-                        <td data-label="شاخص سئو"><strong>متن‌های لنگر (Anchor Texts)</strong></td>
-                        <td data-label="محتوا">
-                            <span class="count-badge" style="margin-bottom: 0.5rem; display: inline-block;">تعداد کل لینک‌ها: ${anchorTexts.length} عدد</span>
-                            ${uniqueAnchors.length ? `<div style="max-height:100px; overflow-y:auto; font-size:0.85rem; color:var(--primary);"><ul>${uniqueAnchors.map(a => `<li>${a}</li>`).join('')}</ul></div>` : '<br><span style="color:var(--text-muted)">لینک متنی یافت نشد.</span>'}
-                        </td>
-                    </tr>
-                    <tr>
-                        <td data-label="شاخص سئو"><strong>متن استخراج‌شده از بدنه (شبیه‌سازی متن خالص)</strong></td>
-                        <td data-label="محتوا">
-                            <span class="count-badge" style="margin-bottom: 0.5rem; display: inline-block;">حجم محتوای شناسایی شده: ${wordCount} کلمه خالص</span>
-                            <div class="body-preview-box">${previewText || '<span style="color:var(--error)">هیچ متنی یافت نشد!</span>'}</div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    `;
-    container.appendChild(card);
-}
+    let tableHtml = `<table class="comparison-table"><thead><tr><th class="metric-header">شاخص‌های ساختاری سئو</th>`;
+    sources.forEach(src => {
+        tableHtml += `<th class="url-column-header" style="direction: ltr; text-align: left; font-size: 0.8rem;">${src.label}</th>`;
+    });
+    tableHtml += `</tr></thead><tbody>`;
 
-function renderErrorTable(url, container) {
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.innerHTML = `
-        <h3 style="font-size:1rem; color:var(--error);">عدم دسترسی به آدرس: ${url}</h3>
-        <p class="error-msg">سرورهای امنیتی مبدا اتصال خزش مستقیم را مسدود کردند. راهکار قطعی: کدهای این صفحه را کپی کرده و در یکی از باکس‌های بخش دوم (سورس دستی HTML) پیست کنید تا همراه بقیه صفحات ارزیابی شود.</p>
-    `;
-    container.appendChild(card);
+    const metrics = [
+        { id: 'title', label: 'Title (عنوان صفحه)' },
+        { id: 'metaDesc', label: 'Meta Description' },
+        { id: 'h1s', label: 'تگ‌های H1' },
+        { id: 'h2s', label: 'تگ‌های H2' },
+        { id: 'h3s', label: 'تگ‌های H3' },
+        { id: 'altTexts', label: 'متن تصاویر (Alt)' },
+        { id: 'anchorTexts', label: 'متن لینک‌ها (Anchor Text)' },
+        { id: 'pureBodyText', label: 'متن خالص بدنه (محتوای متنی)' }
+    ];
+
+    metrics.forEach(metric => {
+        tableHtml += `<tr><td class="metric-header">${metric.label}</td>`;
+        sources.forEach(src => {
+            if (src.isError) {
+                tableHtml += `<td style="color:var(--error)">عدم دسترسی به منبع اطلاعاتی!</td>`;
+                return;
+            }
+            let cell = "";
+            if (metric.id === 'title') cell = src.title ? `<strong>${src.title}</strong>` : '---';
+            else if (metric.id === 'metaDesc') cell = src.metaDesc || '---';
+            else if (['h1s', 'h2s', 'h3s', 'altTexts'].includes(metric.id)) {
+                cell = src[metric.id].length ? `<ul>${src[metric.id].map(i => `<li>${i}</li>`).join('')}</ul>` : '---';
+            } else if (metric.id === 'anchorTexts') {
+                const uniq = [...new Set(src.anchorTexts)];
+                cell = src.anchorTexts.length ? `<span class="count-badge">کل: ${src.anchorTexts.length}</span><div style="max-height:100px; overflow-y:auto; font-size:0.8rem; margin-top:0.4rem;"><ul>${uniq.slice(0,60).map(i => `<li>${i}</li>`).join('')}</ul></div>` : '---';
+            } else if (metric.id === 'pureBodyText') {
+                const words = src.pureBodyText.split(' ').filter(w => w.length > 0);
+                cell = words.length ? `<span class="count-badge">کل: ${words.length} کلمه</span><div class="body-preview-box">${words.slice(0, 100).join(' ')}...</div>` : '---';
+            }
+            tableHtml += `<td>${cell}</td>`;
+        });
+        tableHtml += `</tr>`;
+    });
+
+    tableHtml += `</tbody></table>`;
+    scrollWrapper.innerHTML = tableHtml;
+    container.appendChild(scrollWrapper);
 }
 
 function getTopPhrases(text, phraseLength, topCount = 10) {
-    const persianRegex = /[\u0600-\u06FF\uFB8A\u067E\u0686\u06AF\u200C]+/g;
-    const foundWords = text.match(persianRegex);
-    if (!foundWords) return [];
-
-    const stopWords = ['از', 'به', 'که', 'در', 'با', 'تا', 'را', 'این', 'آن', 'است', 'برای', 'می', 'شور', 'شد', 'شود', 'هم', 'یک', 'یا', 'ها', 'دارد', 'دهند', 'کنند', 'ال', 'های', 'بود', 'دارند', 'نیز', 'تا', 'وی', 'شدند'];
-    const words = foundWords.filter(word => !stopWords.includes(word) && word.length > 1);
-
+    const paragraphs = text.split('[BREAK]');
     const phraseCounts = {};
-    for (let i = 0; i <= words.length - phraseLength; i++) {
-        const phrase = words.slice(i, i + phraseLength).join(" ");
-        phraseCounts[phrase] = (phraseCounts[phrase] || 0) + 1;
-    }
+    const stopWords = ['از', 'به', 'که', 'در', 'با', 'تا', 'را', 'این', 'آن', 'است', 'برای', 'می', 'شور', 'شد', 'شود', 'هم', 'یک', 'یا', 'ها', 'دارد', 'دهند', 'کنند', 'ال', 'های', 'بود', 'دارند', 'نیز', 'وی', 'شدند', 'دارید', 'کنند'];
+    const persianRegex = /[\u0600-\u06FF\uFB8A\u067E\u0686\u06AF\u200C]+/g;
+
+    paragraphs.forEach(p => {
+        const foundWords = p.match(persianRegex);
+        if (!foundWords) return;
+
+        const words = foundWords.filter(word => !stopWords.includes(word) && word.length > 1);
+        if (words.length < phraseLength) return;
+
+        // خزش لغزنده کلمات صرفاً در محدوده امن همان پاراگراف انجام می‌شود
+        for (let i = 0; i <= words.length - phraseLength; i++) {
+            const phrase = words.slice(i, i + phraseLength).join(" ");
+            phraseCounts[phrase] = (phraseCounts[phrase] || 0) + 1;
+        }
+    });
 
     return Object.entries(phraseCounts).sort((a, b) => b[1] - a[1]).slice(0, topCount);
 }
@@ -590,24 +482,17 @@ function getTopPhrases(text, phraseLength, topCount = 10) {
 function renderGlobalPhraseTables(globalText, container) {
     const flexContainer = document.createElement('div');
     flexContainer.className = 'flex-tables';
-    
     for (let len = 2; len <= 5; len++) {
         const topPhrases = getTopPhrases(globalText, len, 10);
         const div = document.createElement('div');
         div.className = 'card';
         div.innerHTML = `
-            <h4 style="margin-top:0; border-bottom: 1px solid var(--border-subtle); padding-bottom:0.5rem; color:var(--text-heading); font-size:0.95rem;">برترین ترکیبات ${len} کلمه‌ای (شامل تایتل، متا، بادی، انکور و آلت)</h4>
+            <h4 style="margin-top:0; border-bottom:1px solid var(--border-subtle); padding-bottom:0.5rem; font-size:0.9rem;">ترکیبات ${len} کلمه‌ای مجموع آدرس‌ها (بدون تکرار کدهای ساختاری)</h4>
             <div class="table-responsive">
                 <table>
-                    <thead>
-                        <tr><th>عبارت فارسی</th><th style="width:35%; text-align:center;">فرکانس تکرار</th></tr>
-                    </thead>
                     <tbody>
                         ${topPhrases.map(([phrase, count]) => `
-                            <tr>
-                                <td data-label="عبارت"><strong>${phrase}</strong></td>
-                                <td data-label="تکرار" style="text-align:center;"><span class="count-badge">${count} بار</span></td>
-                            </tr>
+                            <tr><td><strong>${phrase}</strong></td><td style="text-align:center; width:30%;"><span class="count-badge">${count} بار</span></td></tr>
                         `).join('')}
                     </tbody>
                 </table>
@@ -620,59 +505,29 @@ function renderGlobalPhraseTables(globalText, container) {
 
 function formatTopTwoPhrases(text, phraseLen) {
     const topTwo = getTopPhrases(text, phraseLen, 2);
-    if (topTwo.length === 0) return '<span style="color:var(--text-muted)">یافت نشد</span>';
-    
+    if (topTwo.length === 0) return '<span style="color:var(--text-muted)">---</span>';
     return topTwo.map(([phrase, count]) => `
-        <div class="phrase-item">
-            <span class="phrase-text">${phrase}</span>
-            <span class="count-badge">${count} بار</span>
-        </div>
+        <div class="phrase-item"><span style="color:var(--text-heading); font-weight:500;">${phrase}</span><span class="count-badge">${count} بار</span></div>
     `).join('');
 }
 
 function renderPerUrlPhraseTable(perSourcePhrases, container) {
     const div = document.createElement('div');
     div.className = 'card';
-    div.innerHTML = `
-        <h3 style="margin-bottom:0.5rem;">جدول نهایی: تفکیک دو کلمه کلیدی برتر به ازای هر ورودی</h3>
-        <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.5rem;">توجه: استخراج داده‌های آماری این ماتریس شامل ترکیب ۱۰۰٪ همزمان تمام عبارات ساختاری (Title, Headings, Anchor Texts, Alts, Body و...) به صورت مجزا برای هر لینک است.</p>
-    `;
-    
-    let tableHtml = `
-        <div class="table-responsive">
-            <table id="per-url-table-dom">
-                <thead>
-                    <tr>
-                        <th style="direction:ltr; text-align:left; width: 25%">منبع ورودی اطلاعات</th>
-                        <th>عبارات ۲ کلمه‌ای (کل اجزا)</th>
-                        <th>عبارات ۳ کلمه‌ای (کل اجزا)</th>
-                        <th>عبارات ۴ کلمه‌ای (کل اجزا)</th>
-                        <th>عبارات ۵ کلمه‌ای (کل اجزا)</th>
-                    </tr>
-                </thead>
-                <tbody>
-    `;
+    div.innerHTML = `<h3 style="margin-bottom:0.5rem;">جدول نهایی: دو کلمه کلیدی پرتکرار هر لینک به تفکیک ساختار سیلاب‌بندی (کالیبره‌شده)</h3>`;
+    let tableHtml = `<div class="table-responsive"><table><thead><tr><th style="direction:ltr; text-align:left; width:22%">منبع ورودی اطلاعات</th><th>۲ کلمه‌ای (کل اجزا)</th><th>۳ کلمه‌ای (کل اجزا)</th><th>۴ کلمه‌ای (کل اجزا)</th><th>۵ کلمه‌ای (کل اجزا)</th></tr></thead><tbody>`;
 
     for (const [sourceLabel, text] of Object.entries(perSourcePhrases)) {
-        const cellP2 = formatTopTwoPhrases(text, 2);
-        const cellP3 = formatTopTwoPhrases(text, 3);
-        const cellP4 = formatTopTwoPhrases(text, 4);
-        const cellP5 = formatTopTwoPhrases(text, 5);
-
-        const isUrl = sourceLabel.startsWith('http');
-        const stylizedLabel = isUrl ? `<small>${sourceLabel}</small>` : `<span>${sourceLabel}</span>`;
-
         tableHtml += `
             <tr>
-                <td data-label="منبع / آدرس" style="direction:ltr; text-align:left; word-break: break-all; color: var(--text-muted); font-size: 0.8rem; font-weight:500;">${stylizedLabel}</td>
-                <td data-label="برترین‌های ۲ کلمه‌ای">${cellP2}</td>
-                <td data-label="برترین‌های ۳ کلمه‌ای">${cellP3}</td>
-                <td data-label="برترین‌های ۴ کلمه‌ای">${cellP4}</td>
-                <td data-label="برترین‌های ۵ کلمه‌ای">${cellP5}</td>
+                <td style="direction:ltr; text-align:left; font-size:0.8rem; color:var(--text-muted); word-break:break-all;">${sourceLabel.startsWith('http') ? `<small>${sourceLabel}</small>` : sourceLabel}</td>
+                <td>${formatTopTwoPhrases(text, 2)}</td>
+                <td>${formatTopTwoPhrases(text, 3)}</td>
+                <td>${formatTopTwoPhrases(text, 4)}</td>
+                <td>${formatTopTwoPhrases(text, 5)}</td>
             </tr>
         `;
     }
-
     tableHtml += `</tbody></table></div>`;
     div.innerHTML += tableHtml;
     container.appendChild(div);
