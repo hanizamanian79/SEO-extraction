@@ -422,7 +422,7 @@ const STOP_WORDS = ["هزار", "تومان", "محصول", "سبد", "خرید"
 
 let seoContextData = { titles: [], h1s: [], descriptions: [] };
 let parsedSourcesMemory = [];
-let globalPerSourcePhrases = {}; // ذخیره‌سازی داده‌های فرکانس کلمات برای دسترسی همگانی
+let globalPerSourcePhrases = {}; 
 
 async function fetchWithProxyFallback(targetUrl, statusDiv) {
     const encodedUrl = encodeURIComponent(targetUrl);
@@ -503,7 +503,7 @@ async function triggerUnifiedExtractionWorkflow() {
         renderPerUrlPhraseTable(globalPerSourcePhrases, phraseResultsSection);
         
         statusDiv.innerText = "🚀 عملیات پردازش و بهینه‌سازی با موفقیت پایان یافت.";
-        exportBtn.disabled = false; // فعال‌سازی دکمه اکسل پس از موفقیت عملیات
+        exportBtn.disabled = false; 
     } else {
         statusDiv.innerText = "❌ خطا: سیستم قادر به دریافت محتوای متنی از منابع ارسالی نبود.";
     }
@@ -610,8 +610,15 @@ function renderMegaMatrixTable(container) {
                     break;
                 case 'body':
                     const wordsArray = source.pureBodyText.split(' ').filter(w => w.length > 0);
-                    const previewText = wordsArray.slice(0, 140).join(' ') + (wordsArray.length > 140 ? ' ...' : '');
-                    html += `<div class="body-preview-box">${previewText || 'هیچ متنی استخراج نشد'}</div>`;
+                    const totalWordsCount = wordsArray.length;
+                    const previewText = wordsArray.slice(0, 140).join(' ') + (totalWordsCount > 140 ? ' ...' : '');
+                    
+                    html += `
+                        <div style="margin-bottom: 0.5rem; font-size: 0.8rem; color: var(--accent-emerald); font-weight: bold; background-color: var(--accent-emerald-bg); display: inline-block; padding: 0.15rem 0.5rem; border-radius: var(--radius-sm);">
+                            📊 تعداد کل کلمات متن خالص: ${totalWordsCount} کلمه
+                        </div>
+                        <div class="body-preview-box">${previewText || 'هیچ متنی استخراج نشد'}</div>
+                    `;
                     break;
             }
             html += `</td>`;
@@ -720,24 +727,17 @@ function renderPerUrlPhraseTable(perSourcePhrases, container) {
     container.appendChild(div);
 }
 
-// ----------------------------------------------------
-// موتور ساخت و توسعه خروجی اکسل چندتبی (SheetJS Engine)
-// ----------------------------------------------------
 function exportDataToExcel() {
     if (parsedSourcesMemory.length === 0) return;
 
-    // ایجاد یک ورک‌بوک خالی اکسل
     const workbook = XLSX.utils.book_new();
 
     /* تـب اول: ماتـریس سـاختاری سـئو */
     const matrixRows = [];
-    
-    // هدر تب اول: پارامترها + نام دامنه‌ها / منبع‌ها
     const matrixHeader = ["پارامترهای ساختاری"];
     parsedSourcesMemory.forEach(src => matrixHeader.push(src.label));
     matrixRows.push(matrixHeader);
 
-    // فیلدهای ساختاری ماتریس برای تبدیل به سطر اکسل
     const fields = [
         { id: 'title', label: 'Title (عنوان صفحه)' },
         { id: 'metaDesc', label: 'Meta Description' },
@@ -773,14 +773,12 @@ function exportDataToExcel() {
     const matrixSheet = XLSX.utils.aoa_to_sheet(matrixRows);
     XLSX.utils.book_append_sheet(workbook, matrixSheet, "SEO Matrix");
 
-
     /* تـب دوم: چـگالی و فرکـانس کلمـات کلـیدی */
     const densityRows = [
         ["منبع ورودی", "نوع عبارت", "عبارت کلیدی استخراج شده", "تعداد تکرار (فرکانس)"]
     ];
 
     for (const [sourceLabel, text] of Object.entries(globalPerSourcePhrases)) {
-        // دریافت ۱۲ عبارت برتر برای طول‌های ۲ تا ۵ کلمه‌ای
         [2, 3, 4, 5].forEach(len => {
             const topPhrases = getTopPhrases(text, len, 12);
             topPhrases.forEach(([phrase, count]) => {
@@ -797,16 +795,14 @@ function exportDataToExcel() {
     const densitySheet = XLSX.utils.aoa_to_sheet(densityRows);
     XLSX.utils.book_append_sheet(workbook, densitySheet, "Keyword Density");
 
-    // تنظیم جهت نمایش شیت‌ها به صورت راست‌به‌چپ (RTL) برای سازگاری کامل با زبان فارسی در اکسل
+    // پیکربندی جهت راست‌به‌چپ (RTL) برای شیت‌های اکسل
     if (!workbook.Workbook) workbook.Workbook = {};
     if (!workbook.Workbook.Views) workbook.Workbook.Views = [{}];
     workbook.Workbook.Views[0].RTL = true;
     
-    // فعالسازی ویژگی راست به چپ روی تک تک برگه‌ها
     matrixSheet['!views'] = [{RTL: true}];
     densitySheet['!views'] = [{RTL: true}];
 
-    // دانلود نهایی فایل اکسل تولید شده
     XLSX.writeFile(workbook, `SEO-Analysis-Report-${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 </script>
