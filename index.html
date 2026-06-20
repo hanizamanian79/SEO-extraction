@@ -420,7 +420,6 @@
 <script>
 const STOP_WORDS = ["هزار", "تومان", "محصول", "سبد", "خرید", "افزودن"];
 
-let seoContextData = { titles: [], h1s: [], descriptions: [] };
 let parsedSourcesMemory = [];
 let globalPerSourcePhrases = {}; 
 
@@ -461,7 +460,6 @@ async function triggerUnifiedExtractionWorkflow() {
     phraseResultsSection.innerHTML = ""; 
     exportBtn.disabled = true;
     
-    seoContextData = { titles: [], h1s: [], descriptions: [] };
     parsedSourcesMemory = []; 
     globalPerSourcePhrases = {}; 
 
@@ -526,10 +524,6 @@ function processHtmlDocument(label, htmlContent, perSourcePhrases) {
     const elementsToRemove = cleanDoc.querySelectorAll('script, style, svg, path, iframe, nav, header, footer, noscript, link, head, dialog');
     elementsToRemove.forEach(el => el.remove());
     const pureBodyText = cleanDoc.body ? cleanDoc.body.innerText.replace(/\s+/g, ' ').trim() : "";
-
-    if (title) seoContextData.titles.push(title.toLowerCase());
-    if (metaDesc) seoContextData.descriptions.push(metaDesc.toLowerCase());
-    h1s.forEach(h1 => seoContextData.h1s.push(h1.toLowerCase()));
 
     const combinedLinkElementsText = `
         ${title} \n ${metaDesc} \n ${h1s.join(" \n ")} \n ${h2s.join(" \n ")} \n ${h3s.join(" \n ")} \n 
@@ -649,22 +643,27 @@ function getTopPhrases(text, phraseLength, topCount = 10) {
     return Object.entries(phraseCounts).sort((a, b) => b[1] - a[1]).slice(0, topCount);
 }
 
-function generateSeoBadges(phrase) {
+function generateSeoBadges(phrase, sourceLabel) {
     let badgesHtml = "";
     const lowerPhrase = phrase.toLowerCase();
     
-    const inTitle = seoContextData.titles.some(t => t.includes(lowerPhrase));
-    const inH1 = seoContextData.h1s.some(h => h.includes(lowerPhrase));
-    const inDesc = seoContextData.descriptions.some(d => d.includes(lowerPhrase));
+    // پیدا کردن آبجکت اطلاعات اختصاصی همین منبع (آدرس یا سورس متنی)
+    const currentSource = parsedSourcesMemory.find(src => src.label === sourceLabel && !src.error);
+    
+    if (currentSource) {
+        const inTitle = currentSource.title.toLowerCase().includes(lowerPhrase);
+        const inH1 = currentSource.h1s.some(h => h.toLowerCase().includes(lowerPhrase));
+        const inDesc = currentSource.metaDesc.toLowerCase().includes(lowerPhrase);
 
-    if (inTitle) badgesHtml += `<span class="seo-tag t" title="تکرار در تایتل صفحه">T</span>`;
-    if (inH1) badgesHtml += `<span class="seo-tag h1" title="تکرار در تگ H1">H1</span>`;
-    if (inDesc) badgesHtml += `<span class="seo-tag md" title="تکرار در دیسکریپشن">MD</span>`;
+        if (inTitle) badgesHtml += `<span class="seo-tag t" title="تکرار در تایتل صفحه">T</span>`;
+        if (inH1) badgesHtml += `<span class="seo-tag h1" title="تکرار در تگ H1">H1</span>`;
+        if (inDesc) badgesHtml += `<span class="seo-tag md" title="تکرار در دیسکریپشن">MD</span>`;
+    }
     
     return badgesHtml;
 }
 
-function formatTopTwelvePhrases(text, phraseLen) {
+function formatTopTwelvePhrases(text, phraseLen, sourceLabel) {
     const topTwelve = getTopPhrases(text, phraseLen, 12);
     if (topTwelve.length === 0) return '<span style="color:var(--text-muted)">یافت نشد</span>';
     
@@ -672,7 +671,7 @@ function formatTopTwelvePhrases(text, phraseLen) {
         <div class="phrase-item">
             <div class="phrase-wrapper">
                 <span class="phrase-text">${phrase}</span>
-                ${generateSeoBadges(phrase)}
+                ${generateSeoBadges(phrase, sourceLabel)}
             </div>
             <span class="count-badge">${count} بار</span>
         </div>
@@ -701,10 +700,10 @@ function renderPerUrlPhraseTable(perSourcePhrases, container) {
     `;
 
     for (const [sourceLabel, text] of Object.entries(perSourcePhrases)) {
-        const cellP2 = formatTopTwelvePhrases(text, 2);
-        const cellP3 = formatTopTwelvePhrases(text, 3);
-        const cellP4 = formatTopTwelvePhrases(text, 4);
-        const cellP5 = formatTopTwelvePhrases(text, 5);
+        const cellP2 = formatTopTwelvePhrases(text, 2, sourceLabel);
+        const cellP3 = formatTopTwelvePhrases(text, 3, sourceLabel);
+        const cellP4 = formatTopTwelvePhrases(text, 4, sourceLabel);
+        const cellP5 = formatTopTwelvePhrases(text, 5, sourceLabel);
 
         const isUrl = sourceLabel.startsWith('http');
         const stylizedLabel = isUrl 
@@ -795,7 +794,6 @@ function exportDataToExcel() {
     const densitySheet = XLSX.utils.aoa_to_sheet(densityRows);
     XLSX.utils.book_append_sheet(workbook, densitySheet, "Keyword Density");
 
-    // پیکربندی جهت راست‌به‌چپ (RTL) برای شیت‌های اکسل
     if (!workbook.Workbook) workbook.Workbook = {};
     if (!workbook.Workbook.Views) workbook.Workbook.Views = [{}];
     workbook.Workbook.Views[0].RTL = true;
@@ -803,7 +801,7 @@ function exportDataToExcel() {
     matrixSheet['!views'] = [{RTL: true}];
     densitySheet['!views'] = [{RTL: true}];
 
-    XLSX.writeFile(workbook, `SEO-Analysis-Report-${new Date().toISOString().slice(0,10)}.xlsx`);
+    XLSX.writeFile(workbook, "SEO_Advanced_Matrix_Report.xlsx");
 }
 </script>
 </body>
