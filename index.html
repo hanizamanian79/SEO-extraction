@@ -211,6 +211,20 @@
             animation: fadeIn 0.3s ease-in-out;
         }
 
+        /* استایل‌های بخش اسکرول دوتایی جدول ماتریسی رقبا */
+        .top-scrollbar-container {
+            width: 100%;
+            overflow-x: auto;
+            overflow-y: hidden;
+            height: 18px;
+            margin-bottom: -1.5rem;
+            position: relative;
+            z-index: 15;
+        }
+        .top-scrollbar-fake-content {
+            height: 1px;
+        }
+
         .mega-table-wrapper {
             width: 100%;
             overflow-x: auto;
@@ -420,6 +434,7 @@
 <script>
 const STOP_WORDS = ["هزار", "تومان", "محصول", "سبد", "خرید", "افزودن"];
 
+let seoContextData = { titles: [], h1s: [], descriptions: [] };
 let parsedSourcesMemory = [];
 let globalPerSourcePhrases = {}; 
 
@@ -460,6 +475,7 @@ async function triggerUnifiedExtractionWorkflow() {
     phraseResultsSection.innerHTML = ""; 
     exportBtn.disabled = true;
     
+    seoContextData = { titles: [], h1s: [], descriptions: [] };
     parsedSourcesMemory = []; 
     globalPerSourcePhrases = {}; 
 
@@ -525,6 +541,10 @@ function processHtmlDocument(label, htmlContent, perSourcePhrases) {
     elementsToRemove.forEach(el => el.remove());
     const pureBodyText = cleanDoc.body ? cleanDoc.body.innerText.replace(/\s+/g, ' ').trim() : "";
 
+    if (title) seoContextData.titles.push(title.toLowerCase());
+    if (metaDesc) seoContextData.descriptions.push(metaDesc.toLowerCase());
+    h1s.forEach(h1 => seoContextData.h1s.push(h1.toLowerCase()));
+
     const combinedLinkElementsText = `
         ${title} \n ${metaDesc} \n ${h1s.join(" \n ")} \n ${h2s.join(" \n ")} \n ${h3s.join(" \n ")} \n 
         ${anchorTexts.join(" \n ")} \n ${altTexts.join(" \n ")} \n ${pureBodyText}
@@ -541,6 +561,14 @@ function renderMegaMatrixTable(container) {
     const sectionTitle = document.createElement('h2');
     sectionTitle.innerText = "ماتریس مقایسه ساختار سئوی ستونی رقبا";
     container.appendChild(sectionTitle);
+
+    // ۱. ایجاد کانتینر اسکرول‌بار بالایی به همراه محتوای فرضی هم‌اندازه با جدول اصلی
+    const topScrollbarContainer = document.createElement('div');
+    topScrollbarContainer.className = 'top-scrollbar-container';
+    const topScrollbarFakeContent = document.createElement('div');
+    topScrollbarFakeContent.className = 'top-scrollbar-fake-content';
+    topScrollbarContainer.appendChild(topScrollbarFakeContent);
+    container.appendChild(topScrollbarContainer);
 
     const outerWrapper = document.createElement('div');
     outerWrapper.className = 'mega-table-wrapper';
@@ -623,6 +651,34 @@ function renderMegaMatrixTable(container) {
     html += `</tbody></table>`;
     outerWrapper.innerHTML = html;
     container.appendChild(outerWrapper);
+
+    // ۲. همگام‌سازی دو اسکرول‌بار بالا و پایین با استفاده از ابعاد واقعی جدول رندر شده
+    setTimeout(() => {
+        const tableElement = outerWrapper.querySelector('table');
+        if (tableElement) {
+            topScrollbarFakeContent.style.width = tableElement.scrollWidth + 'px';
+            
+            // قفل متقابل اسکرول‌ها برای تجربه کاربری نرم و یکدست
+            let isSyncingTop = false;
+            let isSyncingBottom = false;
+
+            topScrollbarContainer.onscroll = function() {
+                if (!isSyncingBottom) {
+                    isSyncingTop = true;
+                    outerWrapper.scrollLeft = topScrollbarContainer.scrollLeft;
+                }
+                isSyncingBottom = false;
+            };
+
+            outerWrapper.onscroll = function() {
+                if (!isSyncingTop) {
+                    isSyncingBottom = true;
+                    topScrollbarContainer.scrollLeft = outerWrapper.scrollLeft;
+                }
+                isSyncingTop = false;
+            };
+        }
+    }, 50);
 }
 
 function getTopPhrases(text, phraseLength, topCount = 10) {
@@ -643,27 +699,22 @@ function getTopPhrases(text, phraseLength, topCount = 10) {
     return Object.entries(phraseCounts).sort((a, b) => b[1] - a[1]).slice(0, topCount);
 }
 
-function generateSeoBadges(phrase, sourceLabel) {
+function generateSeoBadges(phrase) {
     let badgesHtml = "";
     const lowerPhrase = phrase.toLowerCase();
     
-    // پیدا کردن آبجکت اطلاعات اختصاصی همین منبع (آدرس یا سورس متنی)
-    const currentSource = parsedSourcesMemory.find(src => src.label === sourceLabel && !src.error);
-    
-    if (currentSource) {
-        const inTitle = currentSource.title.toLowerCase().includes(lowerPhrase);
-        const inH1 = currentSource.h1s.some(h => h.toLowerCase().includes(lowerPhrase));
-        const inDesc = currentSource.metaDesc.toLowerCase().includes(lowerPhrase);
+    const inTitle = seoContextData.titles.some(t => t.includes(lowerPhrase));
+    const inH1 = seoContextData.h1s.some(h => h.includes(lowerPhrase));
+    const inDesc = seoContextData.descriptions.some(d => d.includes(lowerPhrase));
 
-        if (inTitle) badgesHtml += `<span class="seo-tag t" title="تکرار در تایتل صفحه">T</span>`;
-        if (inH1) badgesHtml += `<span class="seo-tag h1" title="تکرار در تگ H1">H1</span>`;
-        if (inDesc) badgesHtml += `<span class="seo-tag md" title="تکرار در دیسکریپشن">MD</span>`;
-    }
+    if (inTitle) badgesHtml += `<span class="seo-tag t" title="تکرار در تایتل صفحه">T</span>`;
+    if (inH1) badgesHtml += `<span class="seo-tag h1" title="تکرار در تگ H1">H1</span>`;
+    if (inDesc) badgesHtml += `<span class="seo-tag md" title="تکرار در دیسکریپشن">MD</span>`;
     
     return badgesHtml;
 }
 
-function formatTopTwelvePhrases(text, phraseLen, sourceLabel) {
+function formatTopTwelvePhrases(text, phraseLen) {
     const topTwelve = getTopPhrases(text, phraseLen, 12);
     if (topTwelve.length === 0) return '<span style="color:var(--text-muted)">یافت نشد</span>';
     
@@ -671,7 +722,7 @@ function formatTopTwelvePhrases(text, phraseLen, sourceLabel) {
         <div class="phrase-item">
             <div class="phrase-wrapper">
                 <span class="phrase-text">${phrase}</span>
-                ${generateSeoBadges(phrase, sourceLabel)}
+                ${generateSeoBadges(phrase)}
             </div>
             <span class="count-badge">${count} بار</span>
         </div>
@@ -700,10 +751,10 @@ function renderPerUrlPhraseTable(perSourcePhrases, container) {
     `;
 
     for (const [sourceLabel, text] of Object.entries(perSourcePhrases)) {
-        const cellP2 = formatTopTwelvePhrases(text, 2, sourceLabel);
-        const cellP3 = formatTopTwelvePhrases(text, 3, sourceLabel);
-        const cellP4 = formatTopTwelvePhrases(text, 4, sourceLabel);
-        const cellP5 = formatTopTwelvePhrases(text, 5, sourceLabel);
+        const cellP2 = formatTopTwelvePhrases(text, 2);
+        const cellP3 = formatTopTwelvePhrases(text, 3);
+        const cellP4 = formatTopTwelvePhrases(text, 4);
+        const cellP5 = formatTopTwelvePhrases(text, 5);
 
         const isUrl = sourceLabel.startsWith('http');
         const stylizedLabel = isUrl 
@@ -801,7 +852,7 @@ function exportDataToExcel() {
     matrixSheet['!views'] = [{RTL: true}];
     densitySheet['!views'] = [{RTL: true}];
 
-    XLSX.writeFile(workbook, "SEO_Advanced_Matrix_Report.xlsx");
+    XLSX.writeFile(workbook, `SEO-Analysis-Report-${new Date().toISOString().slice(0,10)}.xlsx`);
 }
 </script>
 </body>
