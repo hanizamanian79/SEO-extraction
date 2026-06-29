@@ -433,7 +433,6 @@
 <script>
 const STOP_WORDS = ["هزار", "تومان", "محصول", "سبد", "خرید", "افزودن"];
 
-let seoContextData = { titles: [], h1s: [], descriptions: [] };
 let parsedSourcesMemory = [];
 let globalPerSourcePhrases = {}; 
 
@@ -474,7 +473,6 @@ async function triggerUnifiedExtractionWorkflow() {
     phraseResultsSection.innerHTML = ""; 
     exportBtn.disabled = true;
     
-    seoContextData = { titles: [], h1s: [], descriptions: [] };
     parsedSourcesMemory = []; 
     globalPerSourcePhrases = {}; 
 
@@ -540,11 +538,7 @@ function processHtmlDocument(label, htmlContent, perSourcePhrases) {
     elementsToRemove.forEach(el => el.remove());
     const pureBodyText = cleanDoc.body ? cleanDoc.body.innerText.replace(/\s+/g, ' ').trim() : "";
 
-    if (title) seoContextData.titles.push(title.toLowerCase());
-    if (metaDesc) seoContextData.descriptions.push(metaDesc.toLowerCase());
-    h1s.forEach(h1 => seoContextData.h1s.push(h1.toLowerCase()));
-
-    // Separated using clean string arrays separated by structural character blocks to prevent overlapping boundary cross mutations
+    // Structural character isolation block separation per page instance
     const combinedLinkElementsText = [
         title, metaDesc, h1s.join(" | "), h2s.join(" | "), 
         h3s.join(" | "), anchorTexts.join(" | "), altTexts.join(" | "), pureBodyText
@@ -552,8 +546,18 @@ function processHtmlDocument(label, htmlContent, perSourcePhrases) {
     
     perSourcePhrases[label] = combinedLinkElementsText; 
 
+    // FIXED: Save localized clean arrays right inside this page memory block
     parsedSourcesMemory.push({
-        label, title, metaDesc, h1s, h2s, h3s, altTexts, anchorTexts, pureBodyText, error: false
+        label, 
+        title: title,
+        metaDesc: metaDesc, 
+        h1s: h1s, 
+        h2s, h3s, altTexts, anchorTexts, pureBodyText, 
+        error: false,
+        // Lowercase isolated exact matching arrays unique to this source layout
+        localTitleLower: title.toLowerCase(),
+        localMetaDescLower: metaDesc.toLowerCase(),
+        localH1sLower: h1s.map(h => h.toLowerCase())
     });
 }
 
@@ -696,14 +700,14 @@ function getTopPhrases(text, phraseLength, topCount = 10) {
     return Object.entries(phraseCounts).sort((a, b) => b[1] - a[1]).slice(0, topCount);
 }
 
-function generateSeoBadges(phrase) {
-    if (!phrase) return "";
+// FIXED: Receives specific source memory references to completely block multi-url data leakage
+function generateSeoBadges(phrase, sourceObj) {
+    if (!phrase || !sourceObj || sourceObj.error) return "";
     const lowerPhrase = phrase.toLowerCase().trim();
     
-    // Strict lookup requiring the exact unbroken multi-part phrase sequence inside the elements
-    const inTitle = seoContextData.titles.some(t => t.includes(lowerPhrase));
-    const inH1    = seoContextData.h1s.some(h => h.includes(lowerPhrase));
-    const inDesc  = seoContextData.descriptions.some(d => d.includes(lowerPhrase));
+    const inTitle = sourceObj.localTitleLower ? sourceObj.localTitleLower.includes(lowerPhrase) : false;
+    const inDesc  = sourceObj.localMetaDescLower ? sourceObj.localMetaDescLower.includes(lowerPhrase) : false;
+    const inH1    = sourceObj.localH1sLower ? sourceObj.localH1sLower.some(h => h.includes(lowerPhrase)) : false;
 
     let badgesHtml = "";
     if (inTitle) badgesHtml += `<span class="seo-tag t" title="تکرار در تایتل صفحه">T</span>`;
@@ -713,7 +717,7 @@ function generateSeoBadges(phrase) {
     return badgesHtml;
 }
 
-function formatTopTwelvePhrases(text, phraseLen) {
+function formatTopTwelvePhrases(text, phraseLen, sourceObj) {
     const topTwelve = getTopPhrases(text, phraseLen, 12);
     if (topTwelve.length === 0) return '<span style="color:var(--text-muted)">یافت نشد</span>';
     
@@ -721,7 +725,7 @@ function formatTopTwelvePhrases(text, phraseLen) {
         <div class="phrase-item">
             <div class="phrase-wrapper">
                 <span class="phrase-text">${phrase}</span>
-                ${generateSeoBadges(phrase)}
+                ${generateSeoBadges(phrase, sourceObj)}
             </div>
             <span class="count-badge">${count} بار</span>
         </div>
@@ -750,10 +754,13 @@ function renderPerUrlPhraseTable(perSourcePhrases, container) {
     `;
 
     for (const [sourceLabel, text] of Object.entries(perSourcePhrases)) {
-        const cellP2 = formatTopTwelvePhrases(text, 2);
-        const cellP3 = formatTopTwelvePhrases(text, 3);
-        const cellP4 = formatTopTwelvePhrases(text, 4);
-        const cellP5 = formatTopTwelvePhrases(text, 5);
+        // Match current loop iteration label back to its clean isolated data source tracking container
+        const associatedSourceObj = parsedSourcesMemory.find(src => src.label === sourceLabel);
+
+        const cellP2 = formatTopTwelvePhrases(text, 2, associatedSourceObj);
+        const cellP3 = formatTopTwelvePhrases(text, 3, associatedSourceObj);
+        const cellP4 = formatTopTwelvePhrases(text, 4, associatedSourceObj);
+        const cellP5 = formatTopTwelvePhrases(text, 5, associatedSourceObj);
 
         const isUrl = sourceLabel.startsWith('http');
         const stylizedLabel = isUrl 
