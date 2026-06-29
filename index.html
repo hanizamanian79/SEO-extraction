@@ -211,7 +211,6 @@
             animation: fadeIn 0.3s ease-in-out;
         }
 
-        /* استایل‌های بخش اسکرول دوتایی جدول ماتریسی رقبا */
         .top-scrollbar-container {
             width: 100%;
             overflow-x: auto;
@@ -528,11 +527,11 @@ function processHtmlDocument(label, htmlContent, perSourcePhrases) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(htmlContent, "text/html");
 
-    const title = doc.querySelector('title')?.innerText || "";
-    const metaDesc = doc.querySelector('meta[name="description"]')?.getAttribute('content') || "";
-    const h1s = Array.from(doc.querySelectorAll('h1')).map(el => el.innerText.trim());
-    const h2s = Array.from(doc.querySelectorAll('h2')).map(el => el.innerText.trim());
-    const h3s = Array.from(doc.querySelectorAll('h3')).map(el => el.innerText.trim());
+    const title = doc.querySelector('title')?.innerText.trim() || "";
+    const metaDesc = doc.querySelector('meta[name="description"]')?.getAttribute('content')?.trim() || "";
+    const h1s = Array.from(doc.querySelectorAll('h1')).map(el => el.innerText.trim()).filter(t => t !== "");
+    const h2s = Array.from(doc.querySelectorAll('h2')).map(el => el.innerText.trim()).filter(t => t !== "");
+    const h3s = Array.from(doc.querySelectorAll('h3')).map(el => el.innerText.trim()).filter(t => t !== "");
     const altTexts = Array.from(doc.querySelectorAll('img')).map(img => img.getAttribute('alt')).filter(alt => alt && alt.trim() !== "").map(alt => alt.trim());
     const anchorTexts = Array.from(doc.querySelectorAll('a')).map(el => el.innerText.trim()).filter(text => text !== "");
 
@@ -545,10 +544,11 @@ function processHtmlDocument(label, htmlContent, perSourcePhrases) {
     if (metaDesc) seoContextData.descriptions.push(metaDesc.toLowerCase());
     h1s.forEach(h1 => seoContextData.h1s.push(h1.toLowerCase()));
 
-    const combinedLinkElementsText = `
-        ${title} \n ${metaDesc} \n ${h1s.join(" \n ")} \n ${h2s.join(" \n ")} \n ${h3s.join(" \n ")} \n 
-        ${anchorTexts.join(" \n ")} \n ${altTexts.join(" \n ")} \n ${pureBodyText}
-    `;
+    // Separated using clean string arrays separated by structural character blocks to prevent overlapping boundary cross mutations
+    const combinedLinkElementsText = [
+        title, metaDesc, h1s.join(" | "), h2s.join(" | "), 
+        h3s.join(" | "), anchorTexts.join(" | "), altTexts.join(" | "), pureBodyText
+    ].join(" | ");
     
     perSourcePhrases[label] = combinedLinkElementsText; 
 
@@ -562,7 +562,6 @@ function renderMegaMatrixTable(container) {
     sectionTitle.innerText = "ماتریس مقایسه ساختار سئوی ستونی رقبا";
     container.appendChild(sectionTitle);
 
-    // ۱. ایجاد کانتینر اسکرول‌بار بالایی به همراه محتوای فرضی هم‌اندازه با جدول اصلی
     const topScrollbarContainer = document.createElement('div');
     topScrollbarContainer.className = 'top-scrollbar-container';
     const topScrollbarFakeContent = document.createElement('div');
@@ -652,13 +651,11 @@ function renderMegaMatrixTable(container) {
     outerWrapper.innerHTML = html;
     container.appendChild(outerWrapper);
 
-    // ۲. همگام‌سازی دو اسکرول‌بار بالا و پایین با استفاده از ابعاد واقعی جدول رندر شده
     setTimeout(() => {
         const tableElement = outerWrapper.querySelector('table');
         if (tableElement) {
             topScrollbarFakeContent.style.width = tableElement.scrollWidth + 'px';
             
-            // قفل متقابل اسکرول‌ها برای تجربه کاربری نرم و یکدست
             let isSyncingTop = false;
             let isSyncingBottom = false;
 
@@ -700,16 +697,18 @@ function getTopPhrases(text, phraseLength, topCount = 10) {
 }
 
 function generateSeoBadges(phrase) {
-    let badgesHtml = "";
-    const lowerPhrase = phrase.toLowerCase();
+    if (!phrase) return "";
+    const lowerPhrase = phrase.toLowerCase().trim();
     
+    // Strict lookup requiring the exact unbroken multi-part phrase sequence inside the elements
     const inTitle = seoContextData.titles.some(t => t.includes(lowerPhrase));
-    const inH1 = seoContextData.h1s.some(h => h.includes(lowerPhrase));
-    const inDesc = seoContextData.descriptions.some(d => d.includes(lowerPhrase));
+    const inH1    = seoContextData.h1s.some(h => h.includes(lowerPhrase));
+    const inDesc  = seoContextData.descriptions.some(d => d.includes(lowerPhrase));
 
+    let badgesHtml = "";
     if (inTitle) badgesHtml += `<span class="seo-tag t" title="تکرار در تایتل صفحه">T</span>`;
-    if (inH1) badgesHtml += `<span class="seo-tag h1" title="تکرار در تگ H1">H1</span>`;
-    if (inDesc) badgesHtml += `<span class="seo-tag md" title="تکرار در دیسکریپشن">MD</span>`;
+    if (inH1)    badgesHtml += `<span class="seo-tag h1" title="تکرار در تگ H1">H1</span>`;
+    if (inDesc)  badgesHtml += `<span class="seo-tag md" title="تکرار در دیسکریپشن">MD</span>`;
     
     return badgesHtml;
 }
@@ -782,7 +781,6 @@ function exportDataToExcel() {
 
     const workbook = XLSX.utils.book_new();
 
-    /* تـب اول: ماتـریس سـاختاری سـئو */
     const matrixRows = [];
     const matrixHeader = ["پارامترهای ساختاری"];
     parsedSourcesMemory.forEach(src => matrixHeader.push(src.label));
@@ -823,7 +821,6 @@ function exportDataToExcel() {
     const matrixSheet = XLSX.utils.aoa_to_sheet(matrixRows);
     XLSX.utils.book_append_sheet(workbook, matrixSheet, "SEO Matrix");
 
-    /* تـب دوم: چـگالی و فرکـانس کلمـات کلـیدی */
     const densityRows = [
         ["منبع ورودی", "نوع عبارت", "عبارت کلیدی استخراج شده", "تعداد تکرار (فرکانس)"]
     ];
